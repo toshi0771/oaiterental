@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
@@ -10,6 +10,21 @@ export default function ProfilePage() {
   const [ageRange, setAgeRange] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+useEffect(() => {
+  const loadProfile = async () => {
+    try {
+      const res = await fetch('/api/profile')
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.nickname) setNickname(data.nickname)
+      if (data.gender) setGender(data.gender)
+      if (data.age_range) setAgeRange(data.age_range)
+    } catch {
+      // 初回登録時はデータがなくてもエラーにしない
+    }
+  }
+  loadProfile()
+}, [])
 
   const handleSubmit = async () => {
     if (!nickname || !gender || !ageRange) {
@@ -59,7 +74,7 @@ export default function ProfilePage() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="例：たろう"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
           />
         </div>
 
@@ -74,8 +89,8 @@ export default function ProfilePage() {
                 onClick={() => setGender(g.value)}
                 className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   gender === g.value
-                    ? 'bg-pink-500 text-white border-pink-500'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-pink-400'
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
                 }`}
               >
                 {g.label}
@@ -95,8 +110,8 @@ export default function ProfilePage() {
                 onClick={() => setAgeRange(age)}
                 className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
                   ageRange === age
-                    ? 'bg-pink-500 text-white border-pink-500'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-pink-400'
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
                 }`}
               >
                 {age}
@@ -112,7 +127,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? '保存中...' : '保存して始める'}
         </button>

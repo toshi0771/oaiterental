@@ -1,7 +1,25 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+export async function GET() {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('nickname, gender, age_range')
+    .eq('clerk_user_id', userId)
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data)
+}
 export async function POST(request: Request) {
   const { userId } = await auth()
   if (!userId) {
@@ -27,11 +45,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '年代は必須です' }, { status: 400 })
   }
 
-  const { error } = await supabaseAdmin
+  const { data: existing } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .eq('clerk_user_id', userId)
+    .maybeSingle()
+
+  let error
+  if (existing) {
+  const { error: updateError } = await supabaseAdmin
     .from('users')
     .update({ nickname, gender, age_range })
     .eq('clerk_user_id', userId)
+  error = updateError
+  } else {
+  const user = await currentUser()
+  const email = user?.emailAddresses[0]?.emailAddress ?? ''
 
+  const { error: insertError } = await supabaseAdmin
+    .from('users')
+    .insert({
+      clerk_user_id: userId,
+      nickname,
+      gender,
+      age_range,
+      real_name: 'unknown',
+      email,
+    })
+  error = insertError
+  }
+  
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

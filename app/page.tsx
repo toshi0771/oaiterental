@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
+import Link from 'next/link'
+import { APIProvider, Map, AdvancedMarker, InfoWindow, Pin } from '@vis.gl/react-google-maps'
+import { Show, UserButton } from '@clerk/nextjs'
 
 type Entry = {
   id: string
@@ -10,8 +12,11 @@ type Entry = {
   end_time: string
   purpose: string
   hourly_rate: number
+  transaction_type: 'receive' | 'pay'
+  is_own: boolean
   cast_profiles: {
     id: string
+    user_id: string
     age_range: string
     area: string
     lat_fuzzy: number
@@ -40,12 +45,16 @@ function GuideModal({ onClose }: { onClose: () => void }) {
 
           <section>
             <h3 className="font-bold text-gray-900 mb-1">📍 対象エリア</h3>
-            <p>現在は<strong>大阪近郊</strong>（梅田・難波・天王寺など）を中心にサービスを提供しています。</p>
+            <p>現在は<strong>大阪府内</strong>（北摂、大阪、泉州など）を中心にサービスを提供しています。</p>
           </section>
 
           <section>
             <h3 className="font-bold text-gray-900 mb-1">💰 料金について</h3>
-            <p>レンタル料金はキャスト（提供者）が自由に設定します（目安：1,000〜2,000円/時間）。料金は当日現地にてキャストへ直接お支払いください。</p>
+            <p>
+              料金はキャストが自由に設定します(目安:1,000〜2,000円/時)。
+             「時給をもらう」エントリーはキャストが報酬を受け取り、
+              「時給を払う」エントリーはキャストが相手に対価を支払う形式です。
+            </p>  
           </section>
           
           <section>
@@ -55,7 +64,15 @@ function GuideModal({ onClose }: { onClose: () => void }) {
 
           <section>
               <h3 className="font-bold text-gray-900 mb-1">💳 キャストの方へ</h3>
-              <p>レンタルする側は完全無料でご利用いただけます。キャストとして報酬を受け取る方のみ、月額プランへのご加入が必要です(基本プラン 300円/月、プロプラン 3,000円/月)。</p>
+              <p>
+                レンタルする側は完全無料でご利用いただけます。
+                キャストは「時給をもらう」エントリーと「時給を払う」エントリーの
++               どちらも登録できます。ご自身のスタイルに合わせてお選びください。
+                月額プランへのご加入が必要です(基本プラン 300円/月、プロプラン 3,000円/月)。
+              </p>
+              <p className="mt-2 text-sm text-gray-600">
+                登録の流れ:「初めての方へ」を閉じたあと、右上のメニューから「キャスト登録」を選び、本名(運営確認用、非公開)・年代・自己紹介・時給の目安・活動エリアを入力して送信します。あとから何度でも「キャスト登録」画面で内容を編集できます。
+              </p>
           </section>
 
           <section>
@@ -83,7 +100,7 @@ function GuideModal({ onClose }: { onClose: () => void }) {
         <div className="px-6 pb-6">
           <button
             onClick={onClose}
-            className="w-full bg-orange-500 text-white py-2 rounded-xl font-medium hover:bg-orange-600"
+            className="w-full bg-green-500 text-white py-2 rounded-xl font-medium hover:bg-green-600"
           >
             閉じる
           </button>
@@ -97,12 +114,52 @@ export default function HomePage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [selected, setSelected] = useState<Entry | null>(null)
   const [showGuide, setShowGuide] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set()) 
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [castReviews, setCastReviews] = useState<{
+    average: number
+    count: number
+    reviews: { id: string; satisfaction_score: number; comment: string | null }[]
+  } | null>(null)
 
   useEffect(() => {
     fetch('/api/entries/map')
       .then(res => res.json())
       .then(data => setEntries(data))
   }, [])
+
+  useEffect(() => {
+    fetch('/api/applications/mine/unread-count')
+      .then(res => res.json())
+      .then(data => setUnreadCount(data.count))
+  }, [])
+  
+    useEffect(() => {
+    if (selected?.cast_profiles?.user_id) {
+      fetch(`/api/reviews/${selected.cast_profiles.user_id}`)
+        .then(res => res.json())
+        .then(data => setCastReviews(data))
+    } else {
+      setCastReviews(null)
+    }
+  }, [selected])
+
+  const handleApply = async (entryId: string) => {
+    setApplying(true)
+    try {
+      const res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry_id: entryId, message: '' }),
+      })
+      if (res.ok) {
+        setAppliedIds(prev => new Set(prev).add(entryId))
+      }
+    } finally {
+      setApplying(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-screen">
@@ -111,13 +168,28 @@ export default function HomePage() {
         <nav className="flex items-center gap-4">
           <button
             onClick={() => setShowGuide(true)}
-            className="text-sm text-gray-600 hover:text-orange-500"
+            className="text-sm text-gray-600 hover:text-green-500"
           >
             初めての方へ
           </button>
+
+          <Link href="/my-applications" className="relative text-sm text-gray-600 hover:text-green-500">
+            申込み状況
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </Link>
+
+          <Show when="signed-out">
           <a href="/sign-in" className="text-sm text-blue-600 hover:underline">
             ログイン
           </a>
+          </Show>
+          <Show when="signed-in">
+          <UserButton />
+          </Show>
         </nav>
       </header>
 
@@ -126,6 +198,7 @@ export default function HomePage() {
       <main className="flex-1">
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
           <Map
+            mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_ID}
             defaultCenter={{ lat: 34.6937, lng: 135.5023 }}
             defaultZoom={12}
             
@@ -139,7 +212,14 @@ export default function HomePage() {
                   lng: entry.cast_profiles?.lng_fuzzy,
                 }}
                 onClick={() => setSelected(entry)}
-              />
+              
+              >
+                <Pin
+                  background={entry.transaction_type === 'pay' ? '#f97316' : '#0ea5e9'}
+                  borderColor={entry.transaction_type === 'pay' ? '#c2410c' : '#0369a1'}
+                  glyphColor={entry.transaction_type === 'pay' ? '#fed7aa' : '#e0f2fe'}
+                />
+              </AdvancedMarker>              
             ))}
 
             {selected && (
@@ -154,6 +234,17 @@ export default function HomePage() {
                   <p className="font-bold text-gray-800">
                     {selected.cast_profiles?.users?.nickname}
                   </p>
+                  <p className="text-xs font-medium mb-1">
+                    <span
+                      className={`px-2 py-0.5 rounded-full ${
+                        selected.transaction_type === 'pay'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-sky-100 text-sky-700'
+                      }`}           
+                    >
+                      {selected.transaction_type === 'pay' ? '時給を払う' : '時給をもらう'}
+                    </span>
+                  </p>
                   <p className="text-sm text-gray-600">
                     {selected.cast_profiles?.age_range}・
                     {selected.cast_profiles?.users?.gender === 'female' ? '女性' :
@@ -165,12 +256,33 @@ export default function HomePage() {
                   <p className="text-sm text-gray-600">
                     目的：{selected.purpose}
                   </p>
-                  <p className="text-sm font-medium text-orange-600">
+                  <p className="text-sm font-medium text-green-600">
                     ¥{selected.hourly_rate.toLocaleString()}/時
+                    {selected.transaction_type === 'pay' ? '(お支払い)' : '(お受け取り)'}
                   </p>
-                  <button className="mt-2 w-full bg-orange-500 text-white text-sm py-1 rounded hover:bg-orange-600">
-                    申し込む
-                  </button>
+
+                  {!selected.is_own && (
+                    <button
+                      className="mt-2 w-full bg-green-500 text-white ..."
+                      onClick={() => handleApply(selected.id)}
+                      disabled={applying || appliedIds.has(selected.id)}
+                    >
+                      {appliedIds.has(selected.id) ? '申込済み' : applying ? '送信中...' : '申し込む'}
+                    </button>
+                  )} 
+
+                  {castReviews && castReviews.reviews.some(r => r.comment) && (
+                    <div className="mt-2 border-t pt-1 max-h-24 overflow-y-auto">
+                      <p className="text-xs text-gray-400 mb-1">いただいたレビュー</p>
+                      {castReviews.reviews
+                        .filter(r => r.comment)
+                        .map(r => (
+                          <div key={r.id} className="text-xs text-gray-600 mb-1">
+                            {r.comment}
+                          </div>
+                      ))}
+                    </div>
+                  )}             
                 </div>
               </InfoWindow>
             )}

@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(request: Request) {
+  const { userId: clerkUserId } = await auth()
+  let myUserId: string | null = null
+  if (clerkUserId) {
+    const { data: me } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('clerk_user_id', clerkUserId)
+      .single()
+    myUserId = me?.id ?? null
+  }
+
   const { searchParams } = new URL(request.url)
   const date = searchParams.get('date')
   const purpose = searchParams.get('purpose')
@@ -16,8 +28,10 @@ export async function GET(request: Request) {
       end_time,
       purpose,
       hourly_rate,
+      transaction_type, 
       cast_profiles (
         id,
+        user_id,
         age_range,
         area,
         lat_fuzzy,
@@ -39,6 +53,10 @@ export async function GET(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  const result = (data ?? []).map((entry: any) => ({
+  ...entry,
+  is_own: myUserId !== null && entry.cast_profiles?.user_id === myUserId,
+  }))
 
-  return NextResponse.json(data)
+  return NextResponse.json(result)
 }

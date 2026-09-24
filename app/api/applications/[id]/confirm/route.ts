@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { stripe } from '@/lib/stripe'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const applicationId = params.id
+  const { id: applicationId } = await params
 
   // 申込情報を取得
   const { data: application, error: appError } = await supabaseAdmin
@@ -98,5 +99,23 @@ export async function PATCH(
     .update({ first_booking_done: true })
     .eq('user_id', castUserId)
 
+    // Stripeトライアルを終了(該当キャストが未登録/未サブスクなら何もしない)
+  const { data: subscription } = await supabaseAdmin
+    .from('subscriptions')
+    .select('stripe_subscription_id')
+    .eq('user_id', castUserId)
+    .single()
+
+  if (subscription?.stripe_subscription_id) {
+    try {
+      await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+        trial_end: 'now',
+        proration_behavior: 'none',
+      })
+    } catch (stripeError) {
+      console.error('Stripe trial end error:', stripeError)
+      // Stripe側のエラーでマッチング自体は失敗させない
+    }
+  }
   return NextResponse.json(booking, { status: 200 })
 }

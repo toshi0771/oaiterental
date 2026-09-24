@@ -5,7 +5,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/entries/map',      // マップ表示は未ログインでも見える
-  '/api/webhooks/clerk'
+  '/api/webhooks/clerk',
+  '/api/webhooks/stripe'
 ])
 
 export default clerkMiddleware(async (auth, request) => {

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { entry_date, start_time, end_time, purpose, hourly_rate } = body
+  const { entry_date, start_time, end_time, purpose, hourly_rate, transaction_type } = body
 
   // clerk_user_idからusers.idを取得
   const { data: user, error: userError } = await supabaseAdmin
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       end_time,
       purpose,
       hourly_rate,
+      transaction_type: transaction_type === 'pay' ? 'pay' : 'receive',
       status: 'open',
     })
     .select()

@@ -18,6 +18,27 @@ export default function CastRegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/cast-profile/photo', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'アップロードに失敗しました')
+      setPhotoUrl(data.url)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -107,6 +128,35 @@ export default function CastRegisterPage() {
           本名は運営の確認のみに使用され、公開されることはありません。<br />
           内容はあとからこの画面でいつでも編集できます。
         </p>
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            プロフィール写真
+          </label>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-300 overflow-hidden flex items-center justify-center shrink-0">
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photoUrl} alt="プロフィール写真" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-gray-300 text-xs">未設定</span>
+              )}
+            </div>
+            <div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoChange}
+                disabled={uploading}
+                className="text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                顔写真でなくてもOKです(後ろ姿、アバター、イラストなど)。5MBまで。
+              </p>
+              {uploading && <p className="text-xs text-green-600 mt-1">アップロード中...</p>}
+            </div>
+          </div>
+        </div>
+
         <div className="mb-5">
         <label className="block text-sm font-medium text-gray-700 mb-1">
             本名

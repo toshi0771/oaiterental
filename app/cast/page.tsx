@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { requireCast } from '@/lib/cast'
+import { getMe } from '@/lib/me'
+import { getNotificationStatus } from '@/lib/notifications'
 
 const PLAN_LABEL: Record<string, string> = {
   free: '未登録',
@@ -16,6 +18,10 @@ export default async function CastDashboardPage() {
 
   const isPro = cast.planType === 'pro'
 
+  const me = await getMe()
+  const status = me ? await getNotificationStatus(me) : null
+  const noticeBadge = status ? status.unseenNotices + (status.inquiryUnread ? 1 : 0) : 0
+
   const items = [
     { href: '/cast/register', title: 'プロフィール管理', desc: '基本情報・エリア・時給の編集', gated: false },
     { href: '/cast/messages', title: 'メッセージ管理', desc: 'すべての申込者とのやり取りを一覧で確認', gated: true },
@@ -23,6 +29,7 @@ export default async function CastDashboardPage() {
     { href: '/cast/history', title: 'マッチング履歴', desc: '過去の確定・完了した予約一覧', gated: true },
     { href: '/cast/subscribe/change', title: 'プラン変更', desc: '基本⇔プロの切り替え', gated: false },
     { href: '/cast/subscribe/history', title: 'サブスク履歴', desc: '請求履歴の確認', gated: false },
+    { href: '/notices', title: 'お知らせ・お問い合わせ', desc: '運営からのお知らせ/運営への問い合わせ', gated: false, badge: noticeBadge },
   ]
 
   return (
@@ -42,7 +49,14 @@ export default async function CastDashboardPage() {
               className={`border rounded p-4 bg-white hover:bg-gray-50 ${locked ? 'opacity-60' : ''}`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold">{item.title}</span>
+                <span className="font-bold">
+                  {item.title}
+                  {(item.badge ?? 0) > 0 && (
+                    <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </span>
                 {locked && (
                   <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
                     🔒 プロ限定

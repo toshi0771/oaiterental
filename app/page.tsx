@@ -117,16 +117,22 @@ export default function HomePage() {
   const [applying, setApplying] = useState(false)
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set()) 
   const [unreadCount, setUnreadCount] = useState(0)
+  const [noticeBadge, setNoticeBadge] = useState(0)
   const [castReviews, setCastReviews] = useState<{
-    average: number
-    count: number
-    reviews: { id: string; satisfaction_score: number; comment: string | null }[]
+    reviews: { id: string; comment: string | null }[]
   } | null>(null)
 
   useEffect(() => {
     fetch('/api/entries/map')
       .then(res => res.json())
       .then(data => setEntries(data))
+  }, [])
+
+  useEffect(() => {
+    // お知らせ・お問い合わせ返信の未読(未ログインの場合は401なので何もしない)
+    fetch('/api/notifications')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => data && setNoticeBadge(data.badge))
   }, [])
 
   useEffect(() => {
@@ -178,6 +184,15 @@ export default function HomePage() {
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {unreadCount}
+              </span>
+            )}
+          </Link>
+
+          <Link href="/notices" className="relative text-sm text-gray-600 hover:text-green-500">
+            お知らせ
+            {noticeBadge > 0 && (
+              <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {noticeBadge}
               </span>
             )}
           </Link>

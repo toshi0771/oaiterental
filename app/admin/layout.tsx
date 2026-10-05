@@ -16,6 +16,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin" className="hover:underline">ダッシュボード</Link>
           <Link href="/admin/users" className="hover:underline">ユーザー管理</Link>
           <Link href="/admin/casts" className="hover:underline">キャスト管理</Link>
+          <Link href="/admin/summary" className="hover:underline">月次サマリー</Link>
+          <Link href="/admin/inquiries" className="hover:underline">お問い合わせ</Link>
+          <Link href="/admin/announcements" className="hover:underline">お知らせ配信</Link>
         </nav>
         <Link href="/" className="ml-auto text-sm text-gray-300 hover:underline">
           サイトに戻る

@@ -27,9 +27,10 @@
 | 9 | マッチング | ✅ 完了 |
 | 10 | レビュー・サブスク | ✅ 完了 |
 | 11 | メッセージ機能(申込み後の1対1スレッド) | ✅ 完了(既読管理・未読バッジ含む) |
-| 12 | 管理者機能(サイト管理者ページ・キャストページ) | 🔧 進行中(下記参照) |
+| 12 | 管理者機能(サイト管理者ページ・キャストページ) | ✅ 完了(2026-10-05、コミット `8215e02` をpush済み) |
 
-**現在、Phase 12(管理者機能)が進行中。**
+**現在地: Phase 12まで完了。次は LP作成 → バグチェック → 本番公開の順。**
+本番公開はLPとバグチェックの後に行う(それまで本番へは反映しない)。
 
 ---
 
@@ -102,41 +103,49 @@
 
 ### 見送った拡張
 - ヘッダーの「申込み状況」バッジ(マッチング確定の未読通知)とメッセージの未読バッジを1つに統合する案を検討したが、「キャストにとってはマッチング確定が最重要で、それを確認しに来た流れでメッセージにも気づける」という理由で、**当面は別々の表示のままでよい**と判断(将来的に再検討の余地あり)
+- 注: 下記Phase 12のお知らせ・問い合わせ通知は、ヘッダー「お知らせ」の赤バッジとして別枠で実装した(申込み状況・メッセージの未読バッジとは別)
 
-## Phase 12: 管理者機能(進行中)
+## Phase 12: 管理者機能(完了 2026-10-05)
 
 ### 決定事項
-- 「メッセージ通知」は、管理者へのメッセージ(問い合わせ)と、管理者からユーザー・キャストへのお知らせの双方向機能と定義(未実装)
+- 「メッセージ通知」は、管理者へのメッセージ(問い合わせ)と、管理者からユーザー・キャストへのお知らせの双方向機能と定義
 - 管理者権限は`users.role`に`'admin'`を追加する方式(`users_role_check`制約を変更)
 - キャストページの「メッセージ管理」「レビュー管理」「マッチング履歴」は**プロプラン(3000円/月)限定機能**。「プロフィール管理」「プラン変更」「サブスク履歴」は全プラン共通
+- お知らせ・問い合わせは**アプリ内表示のみ**で、メール通知は行わない
 
-### サイト管理者ページ(土台完了)
-- マイグレーション`006_add_admin_foundation.sql`: `users.role`に`'admin'`追加、`users.is_blacklisted`/`blacklist_reason`追加、`subscriptions.status`追加(今後Webhookで同期予定、現状は未使用)
+### サイト管理者ページ(完了)
+- マイグレーション`006_add_admin_foundation.sql`: `users.role`に`'admin'`追加、`users.is_blacklisted`/`blacklist_reason`追加、`subscriptions.status`追加
 - `lib/admin.ts`: `requireAdmin()`共通関数(Clerk認証→`users.role==='admin'`判定)
-- `app/admin/layout.tsx`: アクセス制御付き共通レイアウト、管理者でなければ`/`にリダイレクト
-- `app/admin/page.tsx`: ダッシュボード(総ユーザー数・キャスト登録数・ブラックリスト件数の簡易サマリー)
+- `app/admin/layout.tsx`: アクセス制御付き共通レイアウト、管理者でなければ`/`にリダイレクト。ナビ: ダッシュボード / ユーザー管理 / キャスト管理 / 月次サマリー / お問い合わせ / お知らせ配信 / サイトに戻る
+- `app/admin/page.tsx`: ダッシュボード(総ユーザー数・キャスト登録数・ブラックリスト件数、お問い合わせの件数など)
 - `app/admin/users/page.tsx` + `app/api/admin/users/route.ts`・`app/api/admin/users/[id]/route.ts`: ユーザー一覧、ブラックリストの追加/解除(理由付き)
 - `app/admin/casts/page.tsx` + `app/api/admin/casts/route.ts`: キャスト一覧(エリア・時給レンジ・サブスクプラン・トライアル終了日)、ブラックリスト操作も同画面から可能
-- 実地動作確認済み: ダッシュボード表示、ユーザー/キャスト一覧表示、ブラックリスト登録・解除、非管理者アカウントでのアクセス制御(リダイレクト)
+- `app/admin/announcements/page.tsx` + `app/api/admin/announcements/route.ts`・`[id]/route.ts`: お知らせ配信。宛先は全員 / キャストのみ、タイトル・本文、配信済み一覧、削除
+- `app/admin/inquiries/page.tsx` + `app/api/admin/inquiries/route.ts`・`[userId]/route.ts`: 問い合わせ一覧(未対応バッジ)、スレッド表示、管理者が返信
+- `app/admin/summary/page.tsx` + `app/api/admin/summary/route.ts`: 月次サマリー・MRR。`app/api/webhooks/stripe/route.ts`で`subscriptions.status`をWebhook同期する処理を追加済み
+- 実地動作確認済み: ダッシュボード表示、ユーザー/キャスト一覧、ブラックリスト登録・解除、非管理者のアクセス制御(リダイレクト)、お知らせ配信、問い合わせの受信・返信
 
-**管理者アカウント**: `nre46682@yahoo.co.jp`(普段使いのメールアドレス)を管理者に設定済み。としさん・幸子さんはテスト用アカウントのまま。
+**管理者アカウント**: `nre46682@yahoo.co.jp`(普段使いのメールアドレス)を管理者に設定済み。
 
-### サイト管理者ページ(未着手)
-- メッセージ通知(管理者⇔ユーザー/キャストの問い合わせ、管理者からのお知らせ配信)
-- 月次サマリー・MRR(`subscriptions.status`を使う設計になるが、現状Webhookでstatusを同期する処理が未実装のため、先にそちらの対応が必要)
+### ユーザー・キャスト向けのお知らせ・問い合わせ(完了)
+- 追加テーブル: `announcements`、`inquiry_threads`、`inquiry_messages`(`add_notifications`等のマイグレーション)
+- `app/notices/page.tsx` + `app/api/notices/route.ts`: お知らせ一覧。未読は赤い「NEW」、開くと既読(PATCH)。宛先が「キャストのみ」のお知らせはキャスト(role=cast)にだけ表示される
+- `app/contact/page.tsx` + `app/api/inquiries/route.ts` + `app/components/InquiryThread.tsx`: 運営への問い合わせ。管理者の返信があると`/notices`の「運営へのお問い合わせ」に赤い「返信あり」が付き、`/contact`を開くと消える
+- `app/api/notifications/route.ts` + `lib/notifications.ts` + `lib/me.ts`: ヘッダーの「お知らせ」赤バッジ(未読お知らせ数 + 返信あり件数の合計)
+- 実地動作確認済み: 全員宛がユーザー・キャスト双方に届く / キャストのみ宛がユーザーには出ない / NEWが開くと消える / 返信ありの印が付く・消える / ヘッダーバッジの件数が一致
 
-### キャストページ(一部完了)
+### キャストページ(完了)
 - `lib/cast.ts`: `requireCast()`(キャスト登録済みか)・`requireCastPro()`(プロプランか)の共通関数
 - `app/cast/page.tsx`: ダッシュボード、プラン表示、プロ限定機能には🔒マーク表示(クリックするとプラン変更ページへ誘導)
 - `app/cast/messages/page.tsx` + `app/api/cast/messages/route.ts`(プロ限定): 全申込みの最新メッセージをまとめて一覧表示、クリックで`/cast/applications`へ
 - `app/cast/reviews/page.tsx` + `app/api/cast/reviews/route.ts`(プロ限定): 受け取ったレビューの一覧
 - `app/cast/history/page.tsx` + `app/api/cast/history/route.ts`(プロ限定): 過去の確定・完了予約の一覧(`bookings.status`で判定)
-- プロフィール写真アップロード機能を追加: マイグレーション`007_add_cast_photo_bucket.sql`でSupabase Storageの`cast-photos`バケット(public)を作成、`app/api/cast-profile/photo/route.ts`でアップロード処理(Clerk認証→本人確認→Storageアップロード→公開URL返却、5MB・jpg/png/webp制限)、`app/cast/register/page.tsx`にアップロードUI・丸型プレビューを追加。リロード後の復元表示まで実地確認済み
+- プロフィール写真アップロード: マイグレーション`007_add_cast_photo_bucket.sql`でSupabase Storageの`cast-photos`バケット(public)を作成、`app/api/cast-profile/photo/route.ts`でアップロード処理(Clerk認証→本人確認→Storageアップロード→公開URL返却、5MB・jpg/png/webp制限)、`app/cast/register/page.tsx`にアップロードUI・丸型プレビューを追加。リロード後の復元表示まで実地確認済み
+- `app/cast/subscribe/change/page.tsx` + `app/api/subscribe/change/route.ts`: プラン変更(基本⇔プロ)
+- `app/cast/subscribe/history/page.tsx` + `app/api/subscribe/history/route.ts`: サブスク履歴
 
-### キャストページ(未着手)
-- `/cast/subscribe/change`: プラン変更(基本⇔プロ)。Stripeの`stripe.subscriptions.update()`でprice差し替えが必要
-- `/cast/subscribe/history`: サブスク履歴(請求履歴)。Stripeの`invoices.list()`等を使う想定
-- ダッシュボードの「プラン変更」「サブスク履歴」カードは、現状リンク先が未実装(404になる)
+### Phase 12のコミット
+- `8215e02` feat: Phase 12 管理者機能・お知らせ/問い合わせ・キャストのプラン管理を追加(25ファイル、+1740/-15、2026-10-05にmainへpush済み)
 
 ---
 
@@ -149,6 +158,8 @@
 - ディレクトリ名に`[id]`を使う場合、zshでは特殊文字展開されるためダブルクォートで囲む必要がある
 - ターミナルへの手入力・コピペでIDに不可視文字が混入し、Stripe CLIで「存在しない」エラーになることがある。シェル変数経由で渡すと確実
 - Clerkのアカウント表示名(「おか とし」等)とアプリ内の`users.nickname`(「幸子」等)は完全に別の仕組みで連動していない。テストアカウントを複数作る際に混同しやすいので注意
+- テストアカウントは`users`テーブルで4件(管理者 nre46682 / とし=test1・user / さぶろう=test9・user / 幸子=test・cast)。Gmailの`+`付きアドレスは受信箱が同じでもClerkでは別アカウントになるため、重複ではない
+- 開発サーバーは `http://localhost:3000`(ポート番号の打ち間違いに注意)
 
 ---
 
@@ -157,13 +168,14 @@
 1. Stripe Link確認メールが受信できない問題(詳細未特定、優先度低)
 2. 本番前チェックリストの継続的な洗い出し(法務・eKYC・安全対策など、事業計画書レベルの課題は別途)
 3. (将来的な検討事項)ヘッダー通知バッジとメッセージ未読バッジの統合
+4. **本番反映の準備**: Phase 12のpushで、Renderが自動デプロイしていないか確認する(本番公開はLP・バグチェック後の予定。必要なら Auto-Deploy を Off にする)。本番Supabaseが開発と別プロジェクトの場合は、Phase 12のマイグレーション(`announcements`/`inquiry_threads`/`inquiry_messages`など)を本番側にも実行する
+5. Phase 12で追加したプラン変更・サブスク履歴・月次サマリー(MRR)は、本番相当のStripeデータでの確認がまだ(バグチェックで実施)
 
 ---
 
 ## 次にやること(直近のTODO)
 
-1. キャストページ: プラン変更(`/cast/subscribe/change`、Stripeのprice差し替え)
-2. キャストページ: サブスク履歴(`/cast/subscribe/history`)
-3. サイト管理者ページ: メッセージ通知(問い合わせ・お知らせ)
-4. サイト管理者ページ: 月次サマリー・MRR(`subscriptions.status`のWebhook同期が前提)
-5. Phase 12完了後、本番リリース前チェックリストの洗い出しに戻る
+1. **LP(ランディングページ)作成**
+2. **バグチェック**(Phase 12の新機能、プラン変更・サブスク履歴・月次サマリーを中心に、全体の通し確認)
+3. 本番公開(本番Supabaseへのマイグレーション反映、Renderのデプロイ確認、本番での動作確認)
+4. 本番リリース前チェックリストの洗い出し(法務・安全対策など)

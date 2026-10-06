@@ -1,0 +1,458 @@
+/* お相手レンタル LP — デザイントークン
+   ink   : 本文・主ボタン(深い藍)
+   paper : 交互セクションの地色(青みのある白)
+   sky   : 「時給をもらう」側(アプリのマップ上の水色ピンと同じ系統)
+   amber : 「時給を払う」側(アプリのマップ上のオレンジピンと同じ系統)
+   フォント: 見出し=Zen Maru Gothic、本文=Noto Sans JP */
+
+.page {
+  --ink: #1b2440;
+  --ink-soft: #4a5572;
+  --paper: #f4f8fb;
+  --line: #d3dde6;
+  --sky: #2f9bdb;
+  --sky-deep: #1a76b0;
+  --sky-soft: #ddf0fb;
+  --amber: #f28c28;
+  --amber-deep: #b85f0a;
+  --amber-soft: #fdebd6;
+
+  color: var(--ink);
+  background: #fff;
+  font-family: var(--font-body), sans-serif;
+  line-height: 1.8;
+  font-size: 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.page * {
+  box-sizing: border-box;
+}
+
+.heading {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section {
+  padding: 72px 0;
+}
+
+.sectionAlt {
+  background: var(--paper);
+}
+
+.sectionTitle {
+  font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+  margin-bottom: 12px;
+}
+
+.lead {
+  color: var(--ink-soft);
+  max-width: 34em;
+  margin: 0 0 40px;
+}
+
+/* ---------- ボタン ---------- */
+
+.btn {
+  display: inline-block;
+  padding: 14px 26px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  border: 2px solid var(--ink);
+  min-height: 48px;
+}
+
+.btnPrimary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.btn:focus-visible,
+.faq summary:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 3px;
+}
+
+/* ---------- ファーストビュー ---------- */
+
+.hero {
+  padding: 40px 0 56px;
+  background: linear-gradient(180deg, var(--sky-soft) 0%, #fff 100%);
+}
+
+.heroGrid {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+}
+
+.brand {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  margin: 0 0 24px;
+  color: var(--ink);
+}
+
+.heroTitle {
+  font-size: clamp(2.4rem, 9vw, 4.4rem);
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.heroSub {
+  color: var(--ink-soft);
+  margin: 0 0 28px;
+  max-width: 28em;
+}
+
+.heroCtas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.mapBox {
+  margin: 0;
+}
+
+.mapSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 20px;
+}
+
+.mapNote {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+
+.pulse {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: pulse 2.4s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+    opacity: 0.35;
+    transform: scale(1.4);
+  }
+}
+
+/* ---------- 仕組み(順序のある手順なので番号を付ける) ---------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 24px;
+  counter-reset: step;
+}
+
+.step {
+  counter-increment: step;
+  position: relative;
+  padding-left: 64px;
+}
+
+.step::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.stepTitle {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.step p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- 使える場面(もらう/払うの2タイプ) ---------- */
+
+.types {
+  display: grid;
+  gap: 24px;
+}
+
+.type {
+  padding: 4px 0 4px 20px;
+  border-left: 6px solid var(--line);
+}
+
+.typeReceive {
+  border-left-color: var(--sky);
+}
+
+.typePay {
+  border-left-color: var(--amber);
+}
+
+.typeTitle {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.typeReceive .typeTitle {
+  color: var(--sky-deep);
+}
+
+.typePay .typeTitle {
+  color: var(--amber-deep);
+}
+
+.type ul {
+  margin: 12px 0 0;
+  padding-left: 1.2em;
+}
+
+/* ---------- こんな方に ---------- */
+
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.people li {
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.people li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.peopleTitle {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.people p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- 安心・安全 ---------- */
+
+.safety {
+  display: grid;
+  gap: 20px;
+}
+
+.safety h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.safety p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- 料金 ---------- */
+
+.price {
+  display: grid;
+  gap: 0;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.priceRow {
+  padding: 22px 20px;
+}
+
+.priceRow + .priceRow {
+  border-top: 1px solid var(--line);
+}
+
+.priceName {
+  font-size: 1.05rem;
+  margin-bottom: 2px;
+}
+
+.priceValue {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.priceNote {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+/* ---------- FAQ ---------- */
+
+.faq details {
+  border-top: 1px solid var(--line);
+  padding: 4px 0;
+}
+
+.faq details:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 16px 0;
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: '+';
+  float: right;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.faq details[open] summary::after {
+  content: '−';
+}
+
+.faq p {
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+}
+
+/* ---------- 最終CTA ---------- */
+
+.final {
+  background: var(--ink);
+  color: #fff;
+  text-align: left;
+}
+
+.final .lead {
+  color: #cfd6e8;
+}
+
+.final .btnPrimary {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+
+.final .btnGhost {
+  color: #fff;
+  border-color: #fff;
+}
+
+.footer {
+  padding: 24px 0 calc(24px + env(safe-area-inset-bottom, 0px));
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- 広い画面 ---------- */
+
+@media (min-width: 860px) {
+  .section {
+    padding: 96px 0;
+  }
+
+  .hero {
+    padding: 56px 0 80px;
+  }
+
+  .heroGrid {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+  }
+
+  .steps {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+
+  .step {
+    padding-left: 0;
+    padding-top: 60px;
+  }
+
+  .types {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+
+  .safety {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 48px;
+  }
+
+  .price {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .priceRow + .priceRow {
+    border-top: none;
+    border-left: 1px solid var(--line);
+  }
+}
+
+/* ---------- 共有ボタンの置き場 ---------- */
+
+.shareArea {
+  margin-top: 36px;
+}
+
+.shareLead {
+  margin: 0 0 8px;
+  color: #cfd6e8;
+  font-size: 0.9rem;
+}

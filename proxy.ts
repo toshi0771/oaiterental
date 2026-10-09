@@ -3,6 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 const isPublicRoute = createRouteMatcher([
   '/',
   '/lp',
+  '/legal',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/entries/map',      // マップ表示は未ログインでも見える

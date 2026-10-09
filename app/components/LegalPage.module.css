@@ -42,7 +42,7 @@
   scroll-margin-top: 16px;
 }
 
-.toc ul {
+.page .toc ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -55,8 +55,14 @@
   margin: 0 0 12px;
 }
 
-.page ul,
+.page ul {
+  list-style: disc;
+  margin: 0 0 12px;
+  padding-left: 1.4em;
+}
+
 .page ol {
+  list-style: decimal;
   margin: 0 0 12px;
   padding-left: 1.4em;
 }

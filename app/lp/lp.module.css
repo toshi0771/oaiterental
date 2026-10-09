@@ -248,6 +248,7 @@
 }
 
 .type ul {
+  list-style: disc;
   margin: 12px 0 0;
   padding-left: 1.2em;
 }

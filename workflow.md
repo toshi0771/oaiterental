@@ -162,10 +162,24 @@
 - `app/components/ShareButtons.tsx` + `ShareButtons.module.css`: X / Facebook / LINE の共有ボタン。**運営側のアカウントは不要**で、押した人が自分のアカウントで投稿画面を開く仕組み。共有URLに `utm_source`(x/facebook/line)と `utm_medium=share` を付与。共有先のURLは環境変数 `NEXT_PUBLIC_SITE_URL`(未設定時は localhost)
 - LPの最終CTAに共有ボタンを設置済み
 
+### 決定事項の追加(2026-10-09)
+- **エリア区分を6ブロックから7ブロックに変更**: 南東方面に「近鉄沿線」を追加(北摂/大阪北/京阪沿線/大阪東/近鉄沿線/大阪南/泉州)。LPは7エリアに更新済み。**アプリ側は未対応**(下記TODO)
+- OGP画像はLPのヒーロー(大阪地図イラスト)を縮小して使用。`public/ogp.png`(1200×630)を作成済み
+- 利用規約・プライバシーポリシーは、他サイトの転載ではなく、このサービスに合わせて書いた草案を使う(要法務確認)。**利用規約・プライバシーポリシー・特商法・お問い合わせリンクは1ページ(`/legal`)にまとめる**。フッターのリンクは別ウィンドウで開き、ページ内アンカーで各項目へ移動する
+- 特定商取引法に基づく表記: 屋号 alegria / 代表 岡本俊行 / 〒536-0006 大阪市城東区野江2-21-17。問い合わせは https://alegriajp.com/ の問い合わせセクションへリンク
+
+### 追加で実装済み(2026-10-09)
+- `public/ogp.png` + LPの `metadata` に OGP / Twitterカード(`metadataBase` は `NEXT_PUBLIC_SITE_URL`)
+- `app/legal/page.tsx`(1ページ版。目次と4項目)+ `Terms.tsx`(利用規約)/ `Privacy.tsx`(プライバシーポリシー)/ `Tokushoho.tsx`(特定商取引法に基づく表記)。アンカーは `#terms` `#privacy` `#tokushoho` `#contact`。共通部品 `app/components/LegalPage.tsx` / `LegalLinks.tsx` / `legalInfo.ts`
+- LPのフッターに `/legal` の各項目へのリンク4つ(別ウィンドウ)と運営者表記
+- `proxy.ts` の `isPublicRoute` に `/legal` を追加する必要あり(要対応)
+
 ### 未対応(TODO)
-- アプリ側(`app/layout.tsx` のフッター等)にも `<ShareButtons />` を設置
-- OGP画像の作成と設定(共有時のプレビュー用)
-- フッターに利用規約 / プライバシーポリシー / 特定商取引法に基づく表記へのリンク
+- **アプリ側のエリア区分を7ブロックに変更**: 「泉州」などの文字列でコードとSQLを検索し、エリア定義(代表座標)、キャスト登録画面の選択肢、マップ表示、DBの制約(あれば)を更新。近鉄沿線の代表座標を決める。既存データの扱いも確認
+- アプリ側(`app/layout.tsx` のフッター等)にも `<ShareButtons />` と `<LegalLinks />` を設置
+- `legalInfo.ts` の `contactUrl`: alegriajp.com の問い合わせセクションのアンカー(id)を確認して調整
+- 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)を確定
+- 特商法の税込/税別、支払時期、解約・返金の運用を確定
 - CTAのリンク先を、Clerkのサインアップ後リダイレクトに合わせて調整(`CTA_USER` / `CTA_CAST`)
 - 弁護士確認(上記4箇所に加え、共有に特典を付ける場合はステルスマーケティング規制の表示ルールも確認)
 - 公開URLの確定後に `NEXT_PUBLIC_SITE_URL` を設定し、共有ボタンの動作を確認

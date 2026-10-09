@@ -1,0 +1,19 @@
+.row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.row a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.row a:focus-visible {
+  outline: 3px solid #2f9bdb;
+  outline-offset: 3px;
+}

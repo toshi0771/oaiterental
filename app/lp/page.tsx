@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Zen_Maru_Gothic, Noto_Sans_JP } from 'next/font/google'
 import styles from './lp.module.css'
 import ShareButtons from '../components/ShareButtons'
+import LegalLinks from '../components/LegalLinks'
 
 const heading = Zen_Maru_Gothic({
   weight: ['500', '700'],
@@ -26,12 +27,20 @@ export const metadata: Metadata = {
   title: 'お相手レンタル | 大阪で、今日、近所で、1時間だけ',
   description:
     '大阪全域で、時給をもらう人と時給を払う人が地図でつながる、時間単位のお相手マッチング。ユーザーは無料。',
+  // OGP画像の絶対URLを作るための基準。公開後は NEXT_PUBLIC_SITE_URL に本番URLを設定
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   robots: { index: false, follow: false }, // TODO: 法務確認後に index: true へ
   openGraph: {
     title: 'お相手レンタル',
     description: '今日、近所で、1時間だけ。大阪全域の時間単位マッチング。',
     type: 'website',
-    // TODO: OGP画像を用意して images を追加
+    images: [{ url: '/ogp.png', width: 1200, height: 630, alt: 'お相手レンタル' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'お相手レンタル',
+    description: '今日、近所で、1時間だけ。大阪全域の時間単位マッチング。',
+    images: ['/ogp.png'],
   },
 }
 
@@ -47,8 +56,9 @@ const AREAS = [
   { name: '大阪北', x: 300, y: 105 },
   { name: '京阪沿線', x: 440, y: 165 },
   { name: '大阪東', x: 440, y: 300 },
-  { name: '大阪南', x: 400, y: 430 },
-  { name: '泉州', x: 410, y: 505 },
+  { name: '近鉄沿線', x: 455, y: 425 },
+  { name: '大阪南', x: 350, y: 435 },
+  { name: '泉州', x: 345, y: 508 },
 ]
 
 // ダミーのピン(実際の募集ではない)。水色=時給をもらう、オレンジ=時給を払う
@@ -166,7 +176,7 @@ function MapIllustration() {
           淀川
         </text>
 
-        {/* エリア名(アプリのエリア区分と同じ6ブロック) */}
+        {/* エリア名(アプリのエリア区分と同じ7ブロック) */}
         <g fill="#4a5572" fontSize="14" fontWeight="500">
           {AREAS.map((a) => (
             <text key={a.name} x={a.x} y={a.y} textAnchor="middle">
@@ -414,7 +424,7 @@ export default function LandingPage() {
             </h2>
             <details>
               <summary>どのエリアで使えますか?</summary>
-              <p>大阪全域です。北摂、大阪北、京阪沿線、大阪東、大阪南、泉州のエリアで募集を探せます。</p>
+              <p>大阪全域です。北摂、大阪北、京阪沿線、大阪東、近鉄沿線、大阪南、泉州の7エリアで募集を探せます。</p>
             </details>
             <details>
               <summary>実名は見えますか?</summary>
@@ -461,9 +471,11 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* TODO: 公開前に 利用規約 / プライバシーポリシー / 特定商取引法に基づく表記 へのリンクを追加 */}
       <footer className={styles.footer}>
-        <div className={styles.wrap}>© お相手レンタル</div>
+        <div className={styles.wrap}>
+          <LegalLinks />
+          <p className={styles.copy}>© お相手レンタル(運営: alegria)</p>
+        </div>
       </footer>
     </div>
   )

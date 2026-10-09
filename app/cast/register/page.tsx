@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 const AGE_RANGES = ['10代', '20代', '30代', '40代', '50代', '60代以上']
-const AREAS = ['北摂', '京阪沿線', '大阪北', '大阪南', '大阪東', '泉州']
+const AREAS = ['北摂', '京阪沿線', '大阪北', '大阪南', '大阪東', '近鉄沿線', '泉州']
 
 export default function CastRegisterPage() {
   const router = useRouter()

@@ -402,12 +402,12 @@ export default function LandingPage() {
               </div>
               <div className={styles.priceRow}>
                 <h3 className={`${styles.heading} ${styles.priceName}`}>キャスト(基本)</h3>
-                <p className={styles.priceValue}>月額300円</p>
+                <p className={styles.priceValue}>月額300円(税込)</p>
                 <p className={styles.priceNote}>初めて成立するまでは無料です。</p>
               </div>
               <div className={styles.priceRow}>
                 <h3 className={`${styles.heading} ${styles.priceName}`}>キャスト(プロ)</h3>
-                <p className={styles.priceValue}>月額3,000円</p>
+                <p className={styles.priceValue}>月額3,000円(税込)</p>
                 <p className={styles.priceNote}>
                   メッセージ管理、レビュー管理、マッチング履歴が使えます。
                 </p>

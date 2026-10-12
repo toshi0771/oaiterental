@@ -174,9 +174,12 @@
 - `app/legal/page.tsx`(1ページ版。目次と4項目)+ `Terms.tsx`(利用規約)/ `Privacy.tsx`(プライバシーポリシー)/ `Tokushoho.tsx`(特定商取引法に基づく表記)。アンカーは `#terms` `#privacy` `#tokushoho` `#contact`。共通部品 `app/components/LegalPage.tsx` / `LegalLinks.tsx` / `legalInfo.ts`
 - LPのフッターに `/legal` の各項目へのリンク4つ(別ウィンドウ)と運営者表記
 - `proxy.ts` の `isPublicRoute` に `/lp` と `/legal` を追加済み(ログアウト状態で `/lp` のフッター4リンクから `/legal` が開くことを確認済み 2026-10-09)
-- アプリ側のエリアを7ブロックに変更済み: `app/cast/register/page.tsx` の選択肢と、`app/api/cast-profile/route.ts` の `AREA_COORDS`(大阪東 34.685, 135.575 / 近鉄沿線 34.57, 135.59)。DBの `cast_profiles.area` は text型で制約なし(SQL変更不要)。登録済みキャストの座標は保存済みのため変わらない。コミット `95e36fe` / `d402a2f`。**動作確認(近鉄沿線で保存→マップにピン表示)は未確認**
+- アプリ側のエリアを7ブロックに変更済み: `app/cast/register/page.tsx` の選択肢と、`app/api/cast-profile/route.ts` の `AREA_COORDS`(大阪東 34.685, 135.575 / 近鉄沿線 34.57, 135.59)。DBの `cast_profiles.area` は text型で制約なし(SQL変更不要)。登録済みキャストの座標は保存済みのため変わらない。コミット `95e36fe` / `d402a2f`。動作確認済み(2026-10-13): さぶろうで近鉄沿線(松原・藤井寺付近)、マリアで北摂を登録しエントリーを作成、マップにピンが表示されることを確認
 
 ### 未対応(TODO)
+- 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。残るのは、本番前に『行が無ければAPI側でClerkの情報から作る』対策を入れること(`lib/me.ts` など)。test2・test4〜test7 は必要になったら同様に行を追加する
+- `/my-applications` が、取得に失敗したとき(`/api/applications/mine` が404)に `applications.map is not a function` で落ちる。エラー時は空配列にフォールバックする
+- デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
 - アプリ側(`app/layout.tsx` のフッター等)にも `<ShareButtons />` と `<LegalLinks />` を設置
 - `legalInfo.ts` の `contactUrl`: alegriajp.com の問い合わせセクションのアンカー(id)を確認して調整
 - 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)を確定

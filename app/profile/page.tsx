@@ -104,7 +104,7 @@ useEffect(() => {
             年代
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {['10代', '20代', '30代', '40代', '50代', '60代以上'].map((age) => (
+            {['18〜19歳', '20代', '30代', '40代', '50代', '60代以上'].map((age) => (
               <button
                 key={age}
                 onClick={() => setAgeRange(age)}

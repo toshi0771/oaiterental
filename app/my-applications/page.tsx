@@ -38,7 +38,7 @@ export default function MyApplicationsPage() {
     fetch('/api/applications/mine')
       .then(res => res.json())
       .then(data => {
-        setApplications(data)
+        setApplications(Array.isArray(data) ? data : [])
         setLoading(false)
       })
   }, [])
@@ -54,7 +54,7 @@ export default function MyApplicationsPage() {
       if (res.ok) {
         fetch('/api/applications/mine')
           .then(res => res.json())
-          .then(data => setApplications(data))
+          .then(data => setApplications(Array.isArray(data) ? data : []))
       }
     } finally {
       setCompleting(null)

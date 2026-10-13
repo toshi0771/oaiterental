@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, Pin } from '@vis.gl/react-google-maps'
 import { Show, UserButton } from '@clerk/nextjs'
+import LegalLinks from './components/LegalLinks'
 
 type Entry = {
   id: string
@@ -94,6 +95,11 @@ function GuideModal({ onClose }: { onClose: () => void }) {
           <section>
             <h3 className="font-bold text-gray-900 mb-1">⚠️ ご注意</h3>
             <p>本サービスは出会い系サイト規制法に基づき適切に運営されています。18歳未満の方はご利用いただけません。性的なサービスの提供・要求は固く禁じています。</p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-gray-900 mb-1">📄 規約・お問い合わせ</h3>
+            <LegalLinks />
           </section>
 
         </div>

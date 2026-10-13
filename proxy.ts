@@ -7,6 +7,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/entries/map',      // マップ表示は未ログインでも見える
+  '/api/notifications',
+  '/api/applications/mine/unread-count',
   '/api/webhooks/clerk',
   '/api/webhooks/stripe'
 ])

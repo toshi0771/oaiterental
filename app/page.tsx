@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, Pin } from '@vis.gl/react-google-maps'
 import { Show, UserButton } from '@clerk/nextjs'
 import LegalLinks from './components/LegalLinks'
+import ShareButtons from './components/ShareButtons'
 
 type Entry = {
   id: string
@@ -120,6 +121,7 @@ export default function HomePage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [selected, setSelected] = useState<Entry | null>(null)
   const [showGuide, setShowGuide] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false) // 狭い画面のハンバーガーメニュー
   const [applying, setApplying] = useState(false)
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set()) 
   const [unreadCount, setUnreadCount] = useState(0)
@@ -174,10 +176,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="relative flex flex-col h-screen">
       <header className="bg-white shadow px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-800">お相手レンタル</h1>
-        <nav className="flex items-center gap-4">
+        <nav className="hidden md:flex items-center gap-4">
           <button
             onClick={() => setShowGuide(true)}
             className="text-sm text-gray-600 hover:text-green-500"
@@ -209,10 +211,74 @@ export default function HomePage() {
           </a>
           </Show>
           <Show when="signed-in">
+          <Link href="/cast" className="text-sm font-bold text-green-600 hover:text-green-500">
+            キャスト
+          </Link>
           <UserButton />
           </Show>
+          <ShareButtons size="sm" />
         </nav>
+
+        {/* 狭い画面: ログイン/人アイコン + ハンバーガー */}
+        <div className="flex md:hidden items-center gap-3">
+          <Show when="signed-out">
+            <a href="/sign-in" className="text-sm text-blue-600 hover:underline">
+              ログイン
+            </a>
+          </Show>
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="メニューを開く"
+            aria-expanded={menuOpen}
+            className="relative w-9 h-9 flex items-center justify-center rounded border border-gray-300 text-gray-700"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            {unreadCount + noticeBadge > 0 && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+            )}
+          </button>
+        </div>
       </header>
+
+      {/* 狭い画面: ハンバーガーメニュー本体 */}
+      {menuOpen && (
+        <div className="md:hidden absolute top-14 left-0 right-0 z-20 bg-white shadow-lg border-t border-gray-100 px-4 py-3 flex flex-col gap-3">
+          <button
+            onClick={() => {
+              setMenuOpen(false)
+              setShowGuide(true)
+            }}
+            className="text-left text-sm text-gray-700"
+          >
+            初めての方へ
+          </button>
+          <Link href="/my-applications" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 flex items-center gap-2">
+            申込み状況
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{unreadCount}</span>
+            )}
+          </Link>
+          <Link href="/notices" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 flex items-center gap-2">
+            お知らせ
+            {noticeBadge > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{noticeBadge}</span>
+            )}
+          </Link>
+          <Show when="signed-in">
+            <Link href="/cast" onClick={() => setMenuOpen(false)} className="text-sm font-bold text-green-600">
+              キャスト
+            </Link>
+          </Show>
+          <div className="pt-1">
+            <ShareButtons size="sm" />
+          </div>
+        </div>
+      )}
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 

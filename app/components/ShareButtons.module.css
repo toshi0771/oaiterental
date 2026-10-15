@@ -8,17 +8,20 @@
 }
 
 .btn {
-  display: inline-block;
-  min-height: 44px;
-  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   border: 2px solid #1b2440;
   border-radius: 999px;
   color: #1b2440;
-  font-weight: 700;
-  font-size: 0.95rem;
-  line-height: 1.6;
   text-decoration: none;
   background: transparent;
+}
+
+.btn:hover {
+  background: rgba(27, 36, 64, 0.08);
 }
 
 .btn:focus-visible {
@@ -29,4 +32,24 @@
 .dark .btn {
   color: #fff;
   border-color: #fff;
+}
+
+.dark .btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ヘッダー用の小さいサイズ */
+.sm {
+  gap: 6px;
+}
+
+.sm .btn {
+  width: 36px;
+  height: 36px;
+  border-width: 1.5px;
+}
+
+.sm .btn svg {
+  width: 16px;
+  height: 16px;
 }

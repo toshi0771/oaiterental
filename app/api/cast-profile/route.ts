@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ensureUserId } from '@/lib/ensure-user'
 const AREA_COORDS: Record<string, { lat: number; lng: number }> = {
   '北摂': { lat: 34.7998, lng: 135.4989 },
   '京阪沿線': { lat: 34.6971, lng: 135.5350 },
@@ -71,15 +72,11 @@ export async function POST(request: Request) {
   }
   const { lat, lng } = AREA_COORDS[area]
 
-  const { data: userRow } = await supabaseAdmin
-    .from('users')
-    .select('id')
-    .eq('clerk_user_id', userId)
-    .maybeSingle()
-
-  if (!userRow) {
+  const meId = await ensureUserId()
+  if (!meId) {
     return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
   }
+  const userRow = { id: meId }
 
   // 位置情報のファジー化（半径約300〜800m相当のランダムオフセット）
   const offset = () => (Math.random() - 0.5) * 0.008

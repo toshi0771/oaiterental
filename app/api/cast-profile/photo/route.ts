@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ensureUserId } from '@/lib/ensure-user'
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -11,15 +12,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: me } = await supabaseAdmin
-    .from('users')
-    .select('id')
-    .eq('clerk_user_id', userId)
-    .single()
-
-  if (!me) {
+  const meId = await ensureUserId()
+  if (!meId) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
+  const me = { id: meId }
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null

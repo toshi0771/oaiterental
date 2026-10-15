@@ -184,13 +184,21 @@
 - ユーザーとキャストは同じアカウントで兼ねられることを確認(キャスト登録済みのさぶろうが、マリアの募集に申込済み)
 - Clerkの開発環境のテストアカウントを整理: test4〜test8を削除し、残りは test9(さぶろう)・test3(マリア)・test1(とし)・test(幸子)・nre46682(管理者)の5件。幸子のClerk上の氏名(おか とし)も削除して表示をそろえた
 
+### 完了・決定事項(2026-10-14〜15)
+- `c851fb4`: 「初めての方へ」モーダルに規約・お問い合わせ(`<LegalLinks />`)を追加。アプリ側はフッターではなくモーダルに配置する方針
+- `ebd48f6`: 未ログイン時に出ていた `Failed to fetch` を修正。`proxy.ts` の `isPublicRoute` に `/api/notifications` と `/api/applications/mine/unread-count` を追加(どちらもAPI側で未ログインを自前処理: 401 / `count: 0`)
+- 「User not found」(test2)の原因: ngrok が止まっていて(`ERR_NGROK_3200`)、Clerk の `user.created` Webhook が届かず `users` に行が作られなかった。コードの問題ではない。ClerkのMessage AttemptsからReplayして解消(200 OK、`users` に行ができたことを確認)
+- ローカル開発の注意: `npm run dev` とは別のターミナルタブで `ngrok http --url=celery-feed-kiwi.ngrok-free.dev 3000` を起動しておく。止まっているとサインアップしても `users` の行が作られない
+- LPの「キャストとして登録」→ 新規サインアップ → `/cast/register?from=lp&role=cast` → 登録 → `/cast/subscribe/success` まで、test4 で通しで確認済み(2026-10-15)
+- `1b0beec`: `lib/ensure-user.ts`(`ensureUserId()`)を追加。`users` に行が無ければ Clerk の情報から作る(`real_name='unknown'`、`email`、`nickname`=メールの@より前、`gender='other'`)。insert が衝突したら引き直す。適用先は `app/api/cast-profile/route.ts`(POST)と `app/api/cast-profile/photo/route.ts` のみ(入口を限る方針)。`applications`・`reviews` など「User not found」を返す他のAPIには未適用。動作確認済み: test4 の `users` 行を削除してからキャスト登録し、行が作り直されること
+- `fd0a1e2`: SNS共有をアイコン化(X / Facebook / LINE、`ShareButtons` に `size="sm"` を追加、LINEにも紹介文を付与)。ヘッダーに「キャスト」リンク(ログイン中のみ、人アイコンの左隣、行き先は `/cast`。未登録は `/cast` 側の `requireCast()` が `/cast/register` に誘導)とSNSアイコンを追加。md未満の狭い画面は「お相手レンタル」+ ログイン/人アイコン + ハンバーガーだけにして、メニュー内に 初めての方へ・申込み状況・お知らせ・キャスト・SNS を並べる。申込み状況/お知らせに未読があるときはハンバーガーに赤い点。広い画面と狭い画面の両方、ログイン前後の両方で確認済み
+- 本番ドメインは `oaiterental.info`。SNS共有URLは環境変数 `NEXT_PUBLIC_SITE_URL` を使うため、Renderに `https://oaiterental.info` を設定する(未設定だと共有URLが localhost のままになる)
+- 決定: 利用規約への同意導線は、サインアップ画面には付けない(キャスト登録画面に付けるかは後で決める)
+- `/my-applications` の、取得失敗時に画面が落ちる件は修正済み
+
 ### 未対応(TODO)
-- LPの『キャストとして登録』から、新規サインアップ → そのまま `/cast/register` に戻る流れを、新しいメールアドレスで実際に試す(サインアップ直後は `users` の行の作成が遅れ、『User not found』になる可能性がある。行が無ければAPI側で作る対策とセットで確認する)
-- サインアップやキャスト登録の画面に、利用規約へのリンクと同意の導線を付ける(`/legal#terms`)
-- 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。残るのは、本番前に『行が無ければAPI側でClerkの情報から作る』対策を入れること(`lib/me.ts` など)。test2・test4〜test7 は必要になったら同様に行を追加する
-- `/my-applications` が、取得に失敗したとき(`/api/applications/mine` が404)に `applications.map is not a function` で落ちる。エラー時は空配列にフォールバックする
+- 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
-- アプリ側(`app/layout.tsx` のフッター等)にも `<ShareButtons />` と `<LegalLinks />` を設置
 - `legalInfo.ts` の `contactUrl`: alegriajp.com の問い合わせセクションのアンカー(id)を確認して調整
 - 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)は、ローンチ日に確定する(現在は「2026年10月◯日」のまま)
 - 特商法の支払時期、解約・返金の運用は仮置きのまま(税込は確定済み)

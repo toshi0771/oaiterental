@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   const { data: subRow } = await supabaseAdmin
     .from('subscriptions')
-    .select('stripe_customer_id')
+    .select('stripe_customer_id, status')
     .eq('user_id', userRow.id)
     .maybeSingle()
   
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     customer: customerId,
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     subscription_data: {
-      trial_period_days: 730,
+      trial_period_days: subRow?.status === 'canceled' ? undefined : 730, // 解約歴のある人にはトライアルを付けない
     },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cast/subscribe/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cast/subscribe`,

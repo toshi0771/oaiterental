@@ -197,6 +197,34 @@
 - `/my-applications` の、取得失敗時に画面が落ちる件は修正済み
 - 2026-10-16: モーダルの問い合わせリンク(`contactUrl` = `https://alegriajp.com/#contact`)が問い合わせセクションに飛ばない原因は、alegriajp.com 側の「問い合わせ」見出し(H2)にアンカーが無かったこと。WordPress(SWELL)のブロックエディタで、その H2 の「高度な設定」→「HTML アンカー」に `contact` を設定して解決(お相手レンタル側のコード変更なし)。モーダルから開いて、問い合わせの見出しの位置に飛ぶことを確認済み
 
+### 完了・決定事項(2026-10-16〜17)
+
+プランとキャストの設計(決定)
+- 料金プランの `free` は一般ユーザー専用。キャストは基本かプロの加入者だけ。手続きを済ませなかった人・解約した人は、キャストではなくユーザーに戻る
+- 解約したキャストの募集中の投稿は取り消す(成立済み・完了の履歴は残す)。解約したら請求履歴は見られなくなる(チャラ)
+- 解約歴のある人が再加入するときは、マッチング成立までの無料トライアルは付けない
+- ダッシュボードの「無料中」は、基本プラン加入済みでマッチング未成立の人の表示。「マッチング成立まで料金は発生しません」の但し書きを添える。マッチング後は「基本(300円/月)」
+
+実装(コミット)
+- `74df6c0` プラン表示の「未登録」を「無料中」に変更(`app/cast/page.tsx`・`app/cast/subscribe/history/page.tsx`)
+- `62e075c` 解約(`customer.subscription.deleted`)で、プランを free に戻すのに加えて、`users.role` が cast の人を user に戻し、募集中の `entries` を `cancelled` にする(`app/api/webhooks/stripe/route.ts`)。さぶろうで実地確認済み(role が user に、2件のエントリーが cancelled に)
+- `5c44187` 申し込み(`app/api/subscribe/route.ts`)で、`subscriptions.status` が `canceled` の人にはトライアル(730日)を付けない。解約済みのさぶろうで、Stripe の支払い画面に「¥300/月」だけが出てトライアルの案内が無いことを確認(支払いは確定していない)
+- `59d4129` `requireCast()`(`lib/cast.ts`)で、plan_type が free の人は null を返す(キャストとして扱わない)。ダッシュボードは `/cast/register` に移動する。解約済みのさぶろうは `/cast/register` に移動し、加入中の幸子はこれまでどおり開くことを確認済み
+- `7f7a98c` `requireCast()` が `firstBookingDone` を返すようにして、ダッシュボードの表示を切り替え。あわせて、ダッシュボードに「申込み一覧」カード(`/cast/applications`、全プラン共通)を追加。それまで、申込みごとのメッセージ・承認の入口はプロ限定の「メッセージ管理」の中にしかなく、基本プランのキャストはたどり着けなかった。「メッセージ管理」の説明は「一覧でまとめて確認」に変更。マリア(基本・未マッチング)で確認済み
+
+Stripe の通知と、データの修正
+- Stripe の Webhook は ngrok を使っていない。Stripe のサンドボックスには送信先が登録されておらず、`stripe listen --forward-to localhost:3000/api/webhooks/stripe`(別タブで起動しておく)でローカルに転送する。`.env.local` の `STRIPE_WEBHOOK_SECRET` は `stripe listen` が表示する `whsec_…` と同じ値(先頭を照合済み)
+- 10/12・10/15 に基本プランへ申し込んだ3人(さぶろう・マリア・田中ひさし)が、Stripe にはサブスクがあるのに、`subscriptions` が free のままだった。申し込みの時刻に `stripe listen` が動いていなかったためと推測(未確定)。対応: Supabase の `subscriptions` に `stripe_subscription_id` だけ手で入れ、`stripe subscriptions update "$SUB_ID" -d "metadata[sync]=1"` で `customer.subscription.updated` を発火させて、既存の処理で plan_type などを反映させた(3人とも basic)。ID は手で打たず、Stripe のコピーボタンで写す
+- 本番公開では、Stripe(本番用)と Clerk(本番用)の両方に、本番のURLを Webhook の送信先として登録する。登録し忘れると、同じ反映漏れが本番で起きる
+- Supabase に管理用ビュー `admin_subscriptions` を作成(SQL Editor で実行。`users` と `subscriptions` を結合し、ニックネーム・実名・メール・role・プラン・サブスクID・トライアル終了日などを1行に表示。`security_invoker = true`、anon / authenticated からは `revoke`)。SQL はリポジトリには未保存
+
+まだ確認していないこと・要対応
+- 解約したキャストが再びキャスト登録し、Checkout を完了して basic に戻り、キャストとして使える状態に戻るまでの通し確認(`cast-profile` の保存で role が cast になるタイミングも含む)
+- プロフィールだけ保存してプランに加入していない人は、role が cast のまま、plan_type が free になる(`requireCast()` が弾くので機能は使えない)。登録の流れを、加入後に role を cast にする順に変えるかは未決定
+- `requireCast()` を使うプラン変更・サブスク履歴のAPIは、free の人は 403 になる(解約者の履歴が見られないのは仕様)
+- `ensureUserId()` は、`cast-profile` とその写真アップロードにだけ適用済み。`applications`・`reviews` など「User not found」を返す他のAPIには未適用
+- 「無料中」の PLAN_LABEL の `free` は、`requireCast()` が free を弾くので、画面には出なくなった(残しても害はない)
+
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)

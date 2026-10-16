@@ -37,10 +37,14 @@ export async function requireCast(): Promise<CastContext | null> {
     .eq('user_id', me.id)
     .single()
 
+  // 料金プランの free は一般ユーザー専用。加入していない人・解約した人はキャストとして扱わない
+  const planType = subscription?.plan_type ?? 'free'
+  if (planType === 'free') return null
+
   return {
     userId: me.id,
     castProfileId: castProfile.id,
-    planType: subscription?.plan_type ?? 'free',
+    planType,
   }
 }
 

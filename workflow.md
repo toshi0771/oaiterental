@@ -195,11 +195,11 @@
 - 本番ドメインは `oaiterental.info`。SNS共有URLは環境変数 `NEXT_PUBLIC_SITE_URL` を使うため、Renderに `https://oaiterental.info` を設定する(未設定だと共有URLが localhost のままになる)
 - 決定: 利用規約への同意導線は、サインアップ画面には付けない(キャスト登録画面に付けるかは後で決める)
 - `/my-applications` の、取得失敗時に画面が落ちる件は修正済み
+- 2026-10-16: モーダルの問い合わせリンク(`contactUrl` = `https://alegriajp.com/#contact`)が問い合わせセクションに飛ばない原因は、alegriajp.com 側の「問い合わせ」見出し(H2)にアンカーが無かったこと。WordPress(SWELL)のブロックエディタで、その H2 の「高度な設定」→「HTML アンカー」に `contact` を設定して解決(お相手レンタル側のコード変更なし)。モーダルから開いて、問い合わせの見出しの位置に飛ぶことを確認済み
 
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
-- `legalInfo.ts` の `contactUrl`: alegriajp.com の問い合わせセクションのアンカー(id)を確認して調整
 - 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)は、ローンチ日に確定する(現在は「2026年10月◯日」のまま)
 - 特商法の支払時期、解約・返金の運用は仮置きのまま(税込は確定済み)
 - CTAのリンク先を、Clerkのサインアップ後リダイレクトに合わせて調整(`CTA_USER` / `CTA_CAST`)

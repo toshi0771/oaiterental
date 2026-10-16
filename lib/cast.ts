@@ -5,6 +5,7 @@ type CastContext = {
   userId: string
   castProfileId: string
   planType: string
+  firstBookingDone: boolean
 }
 
 /**
@@ -33,7 +34,7 @@ export async function requireCast(): Promise<CastContext | null> {
 
   const { data: subscription } = await supabaseAdmin
     .from('subscriptions')
-    .select('plan_type')
+    .select('plan_type, first_booking_done')
     .eq('user_id', me.id)
     .single()
 
@@ -45,6 +46,7 @@ export async function requireCast(): Promise<CastContext | null> {
     userId: me.id,
     castProfileId: castProfile.id,
     planType,
+    firstBookingDone: subscription?.first_booking_done ?? false,
   }
 }
 

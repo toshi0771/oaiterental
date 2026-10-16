@@ -24,7 +24,8 @@ export default async function CastDashboardPage() {
 
   const items = [
     { href: '/cast/register', title: 'プロフィール管理', desc: '基本情報・エリア・時給の編集', gated: false },
-    { href: '/cast/messages', title: 'メッセージ管理', desc: 'すべての申込者とのやり取りを一覧で確認', gated: true },
+    { href: '/cast/applications', title: '申込み一覧', desc: 'ユーザーからの申込みの確認・承認、待ち合わせのメッセージ', gated: false },
+    { href: '/cast/messages', title: 'メッセージ管理', desc: 'すべての申込者とのやり取りを一覧でまとめて確認', gated: true },
     { href: '/cast/reviews', title: 'レビュー管理', desc: '受け取った感想の一覧', gated: true },
     { href: '/cast/history', title: 'マッチング履歴', desc: '過去の確定・完了した予約一覧', gated: true },
     { href: '/cast/subscribe/change', title: 'プラン変更', desc: '基本⇔プロの切り替え', gated: false },
@@ -36,7 +37,7 @@ export default async function CastDashboardPage() {
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-xl font-bold mb-1">キャストダッシュボード</h1>
       <p className="text-sm text-gray-500 mb-6">
-        現在のプラン: <span className="font-bold">{PLAN_LABEL[cast.planType] ?? cast.planType}</span>
+        現在のプラン: <span className="font-bold">{cast.planType === 'basic' && !cast.firstBookingDone ? '無料中(マッチング成立まで料金は発生しません)' : (PLAN_LABEL[cast.planType] ?? cast.planType)}</span>
       </p>
 
       <div className="grid gap-3">

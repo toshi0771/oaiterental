@@ -111,10 +111,34 @@ export async function POST(request: Request) {
     const subscription = event.data.object as any
 
     // 解約されたらプロ限定機能等が使えないよう、プランを free に戻す
-    await supabaseAdmin
+    const { data: canceledRows } = await supabaseAdmin
       .from('subscriptions')
       .update({ plan_type: 'free', status: 'canceled' })
       .eq('stripe_subscription_id', subscription.id as string)
+      .select('user_id')
+
+    // 解約したキャストはユーザーに戻し、募集中の投稿を取り消す(成立済み・完了の履歴は残す)
+    for (const row of canceledRows ?? []) {
+      await supabaseAdmin
+        .from('users')
+        .update({ role: 'user' })
+        .eq('id', row.user_id)
+        .eq('role', 'cast')
+
+      const { data: castProfile } = await supabaseAdmin
+        .from('cast_profiles')
+        .select('id')
+        .eq('user_id', row.user_id)
+        .maybeSingle()
+
+      if (castProfile) {
+        await supabaseAdmin
+          .from('entries')
+          .update({ status: 'cancelled' })
+          .eq('cast_id', castProfile.id)
+          .eq('status', 'open')
+      }
+    }
   }
 
   return NextResponse.json({ received: true })

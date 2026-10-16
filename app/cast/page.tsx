@@ -5,7 +5,7 @@ import { getMe } from '@/lib/me'
 import { getNotificationStatus } from '@/lib/notifications'
 
 const PLAN_LABEL: Record<string, string> = {
-  free: '未登録',
+  free: '無料中',
   basic: '基本(300円/月)',
   pro: 'プロ(3000円/月)',
 }

@@ -1,9 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 
-export default function SubscribeSuccessPage() {
+function SuccessContent() {
+  const returning = useSearchParams().get('returning') === '1'
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
@@ -11,7 +14,7 @@ export default function SubscribeSuccessPage() {
       <p className="text-gray-600 mb-8">
         キャストプランの登録が完了しました。
         <br />
-        マッチングが成立するまで料金は発生しません。
+        {returning ? 'お申し込み日から月額料金が発生します。' : 'マッチングが成立するまで料金は発生しません。'}
       </p>
       <Link
         href="/"
@@ -20,5 +23,13 @@ export default function SubscribeSuccessPage() {
         ホームに戻る
       </Link>
     </div>
+  )
+}
+
+export default function SubscribeSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuccessContent />
+    </Suspense>
   )
 }

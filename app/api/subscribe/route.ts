@@ -56,14 +56,16 @@ export async function POST(request: Request) {
       .eq('user_id', userRow.id)
   }
 
+  const noTrial = subRow?.status === 'canceled'
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: customerId,
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     subscription_data: {
-      trial_period_days: subRow?.status === 'canceled' ? undefined : 730, // 解約歴のある人にはトライアルを付けない
+      trial_period_days: noTrial ? undefined : 730, // 解約歴のある人にはトライアルを付けない
     },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cast/subscribe/success`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cast/subscribe/success${noTrial ? '?returning=1' : ''}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cast/subscribe`,
   })
 

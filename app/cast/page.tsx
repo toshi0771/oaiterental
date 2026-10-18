@@ -37,7 +37,7 @@ export default async function CastDashboardPage() {
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-xl font-bold mb-1">キャストダッシュボード</h1>
       <p className="text-sm text-gray-500 mb-6">
-        現在のプラン: <span className="font-bold">{cast.planType === 'basic' && !cast.firstBookingDone ? '無料中(マッチング成立まで料金は発生しません)' : (PLAN_LABEL[cast.planType] ?? cast.planType)}</span>
+        現在のプラン: <span className="font-bold">{cast.planType === 'basic' && !cast.firstBookingDone && cast.trialEndsAt ? '無料中(マッチング成立まで料金は発生しません)' : (PLAN_LABEL[cast.planType] ?? cast.planType)}</span>
       </p>
 
       <div className="grid gap-3">

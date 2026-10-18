@@ -245,6 +245,23 @@ Stripe の通知と、データの修正
 まだ確認していないこと
 - 実際に解約して再加入したときに、Checkout 完了後のURLへ `?returning=1` が付くか(URLを直接開く確認までで、通しでは未確認)
 
+### 完了・決定事項(2026-10-19 続き)
+
+月次サマリー・MRRのバグチェック(完了)
+- MRR(600円)、トライアル中の見込み(600円)、解約(0件)は、Supabase の `subscriptions` の内訳(basic/active 2件、basic/trialing 2件)と一致。MRRの計算(`app/api/admin/summary/route.ts`)に不具合はなかった
+- `customer.subscription.updated` の Webhook は実装済みで、`status`・`trial_ends_at`・`plan_type` を Supabase に同期している(以前の「未実装」の記録は古い)
+- 2026-10 の売上 1,412円 は、Stripe の請求書2件(300円と1,112円)の合計。1,112円はプラン変更(基本とプロの切り替え)の日割り精算を含む正常な請求で、不具合ではない
+- 画面の注記を修正: 売上にプラン変更の日割り精算を含むため、金額が300円の倍数にならない月がある旨を `app/admin/summary/page.tsx` に追記(`b4b0a1f`)
+
+気づいたこと(小さい点・未対応)
+- MRRは `past_due`(支払い遅延)も課金中として数えている
+- 「新規ユーザー」にはキャストも含まれる(キャストも `users` に行があるため)
+
+次にやること
+- `ensureUserId()` を `applications`・`reviews` など他のAPIにも広げるか判断
+- Render への初回デプロイ準備(本番用の Stripe・Clerk の Webhook URL 登録、`NEXT_PUBLIC_SITE_URL=https://oaiterental.info`)
+- 弁護士確認待ちのモーダル文言
+
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)

@@ -219,11 +219,31 @@ Stripe の通知と、データの修正
 - Supabase に管理用ビュー `admin_subscriptions` を作成(SQL Editor で実行。`users` と `subscriptions` を結合し、ニックネーム・実名・メール・role・プラン・サブスクID・トライアル終了日などを1行に表示。`security_invoker = true`、anon / authenticated からは `revoke`)。SQL はリポジトリには未保存
 
 まだ確認していないこと・要対応
-- 解約したキャストが再びキャスト登録し、Checkout を完了して basic に戻り、キャストとして使える状態に戻るまでの通し確認(`cast-profile` の保存で role が cast になるタイミングも含む)
 - プロフィールだけ保存してプランに加入していない人は、role が cast のまま、plan_type が free になる(`requireCast()` が弾くので機能は使えない)。登録の流れを、加入後に role を cast にする順に変えるかは未決定
 - `requireCast()` を使うプラン変更・サブスク履歴のAPIは、free の人は 403 になる(解約者の履歴が見られないのは仕様)
 - `ensureUserId()` は、`cast-profile` とその写真アップロードにだけ適用済み。`applications`・`reviews` など「User not found」を返す他のAPIには未適用
 - 「無料中」の PLAN_LABEL の `free` は、`requireCast()` が free を弾くので、画面には出なくなった(残しても害はない)
+
+### 完了・決定事項(2026-10-19)
+
+再加入キャストの通し確認(完了)
+- 解約済みのさぶろう(role が user)で、`/cast/register` → プロフィール確認 → プラン選択 → Stripe Checkout(「¥300/月」のみでトライアル表示なし)→ テストカード決済まで通した。Webhook はすべて 200
+- Supabase の反映を確認: plan_type が basic、role が cast、stripe_subscription_id あり、trial_ends_at が NULL、first_booking_done が false
+- 再加入者は申込み時点で300円が実際に請求される(`invoice.payment_succeeded` を確認)
+
+見つけた不具合と修正
+- ダッシュボードが再加入者にも「無料中(マッチング成立まで料金は発生しません)」と出ていた。原因は、判定が「basic かつ firstBookingDone が false」だけで、トライアルの有無を見ていなかったこと
+- 決済完了画面の「マッチングが成立するまで料金は発生しません」も固定文言で、再加入者にも出ていた
+
+実装(コミット)
+- `352312d` 再加入キャストの表示修正
+  - `lib/cast.ts`: `requireCast()` が `trialEndsAt`(`subscriptions.trial_ends_at`)を返すようにした
+  - `app/cast/page.tsx`: 「無料中」の条件に `cast.trialEndsAt` があることを追加。トライアルなしの再加入者は「基本(300円/月)」と表示される。確認済み
+  - `app/api/subscribe/route.ts`: トライアルなしの判定を `noTrial` にまとめ、noTrial のときだけ完了画面のURLに `?returning=1` を付ける
+  - `app/cast/subscribe/success/page.tsx`: `?returning=1` のときは「お申し込み日から月額料金が発生します。」、ないときは従来の文言。`useSearchParams` のため `Suspense` で包んだ。URLを直接開いて両方の表示を確認済み
+
+まだ確認していないこと
+- 実際に解約して再加入したときに、Checkout 完了後のURLへ `?returning=1` が付くか(URLを直接開く確認までで、通しでは未確認)
 
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する

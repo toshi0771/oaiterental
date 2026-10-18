@@ -112,7 +112,7 @@ export default function AdminSummaryPage() {
         </table>
       </div>
       <p className="text-xs text-gray-400 mt-2">
-        売上はStripeの支払い済み請求書の合計です(円建てのみ)。確定・完了はマッチングの確定日・完了日で数えています。
+        売上はStripeの支払い済み請求書の合計です(円建てのみ。プラン変更の日割り精算を含むため、金額が300円の倍数にならない月があります)。確定・完了はマッチングの確定日・完了日で数えています。
       </p>
     </div>
   )

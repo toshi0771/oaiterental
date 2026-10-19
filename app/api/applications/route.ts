@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ensureUserId } from '@/lib/ensure-user'
 
 export async function POST(request: Request) {
   const { userId } = await auth()
@@ -11,16 +12,12 @@ export async function POST(request: Request) {
   const body = await request.json()
   const { entry_id, message } = body
 
-  // clerk_user_idからusers.idを取得
-  const { data: user, error: userError } = await supabaseAdmin
-    .from('users')
-    .select('id')
-    .eq('clerk_user_id', userId)
-    .single()
-
-  if (userError || !user) {
+  // users.idを取得(行が無ければ作る)
+  const meId = await ensureUserId()
+  if (!meId) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
+  const user = { id: meId }
 
   // 自己申込みチェック
   const { data: targetEntry, error: entryCheckError } = await supabaseAdmin

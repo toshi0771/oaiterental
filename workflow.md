@@ -221,7 +221,7 @@ Stripe の通知と、データの修正
 まだ確認していないこと・要対応
 - プロフィールだけ保存してプランに加入していない人は、role が cast のまま、plan_type が free になる(`requireCast()` が弾くので機能は使えない)。登録の流れを、加入後に role を cast にする順に変えるかは未決定
 - `requireCast()` を使うプラン変更・サブスク履歴のAPIは、free の人は 403 になる(解約者の履歴が見られないのは仕様)
-- `ensureUserId()` は、`cast-profile` とその写真アップロードにだけ適用済み。`applications`・`reviews` など「User not found」を返す他のAPIには未適用
+- `ensureUserId()` は `cast-profile`・その写真アップロード・`applications`(POST)に適用済み。他のAPIは、そこに届く人の `users` 行がすでにあるはずなので、意図的に未適用(2026-10-19 決定)
 - 「無料中」の PLAN_LABEL の `free` は、`requireCast()` が free を弾くので、画面には出なくなった(残しても害はない)
 
 ### 完了・決定事項(2026-10-19)
@@ -262,8 +262,19 @@ Stripe の通知と、データの修正
 - Render への初回デプロイ準備(本番用の Stripe・Clerk の Webhook URL 登録、`NEXT_PUBLIC_SITE_URL=https://oaiterental.info`)
 - 弁護士確認待ちのモーダル文言
 
+### 完了・決定事項(2026-10-19 夜)
+
+`ensureUserId()` の適用範囲を決定・実装(完了)
+- 「User not found」を返すAPIは9本あった(`messages`・`messages/mark-read`・`entries`・`bookings/[id]/complete`・`applications`・`applications/mine`・`applications/mine/mark-viewed`・`cast-profile/photo`・`reviews`)
+- 全部には入れない方針に決定。`users` に行が無い人が最初に詰まるのは、一般ユーザーが最初に書き込む `applications` の POST だけ。他のAPIに届く人は、キャスト登録か申込みを経ていて、`users` の行がすでにあるはずなので、保険は不要と判断
+- `app/api/applications/route.ts` の POST に `ensureUserId()` を適用(`04ecfaf`)。型チェック(`npx tsc --noEmit`)はエラーなし。通常の申込みが変更後も動くことを、Supabase の `applications` に新しい行(`pending`)が入ったことで確認済み
+- 「users の行が無い状態」を実際に作っての検証はしていない(再現が大変なため)
+
+本番公開に向けて決めること
+- Supabase のプロジェクトに「PRODUCTION」のラベルが付いており、ローカル開発も同じプロジェクトを使っている。本番公開のときにテストデータをどうするか(消す・別プロジェクトに分けるなど)を決める
+
 ### 未対応(TODO)
-- 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。他のAPIへの適用は未対応。test2・test4〜test7 は必要になったら同様に行を追加する
+- 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。`applications`(POST)にも適用済み(2026-10-19)。他のAPIは意図的に未適用。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
 - 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)は、ローンチ日に確定する(現在は「2026年10月◯日」のまま)
 - 特商法の支払時期、解約・返金の運用は仮置きのまま(税込は確定済み)

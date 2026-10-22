@@ -270,8 +270,33 @@ Stripe の通知と、データの修正
 - `app/api/applications/route.ts` の POST に `ensureUserId()` を適用(`04ecfaf`)。型チェック(`npx tsc --noEmit`)はエラーなし。通常の申込みが変更後も動くことを、Supabase の `applications` に新しい行(`pending`)が入ったことで確認済み
 - 「users の行が無い状態」を実際に作っての検証はしていない(再現が大変なため)
 
-本番公開に向けて決めること
-- Supabase のプロジェクトに「PRODUCTION」のラベルが付いており、ローカル開発も同じプロジェクトを使っている。本番公開のときにテストデータをどうするか(消す・別プロジェクトに分けるなど)を決める
+
+### 完了・決定事項(2026-10-22) 本番用Supabaseの準備
+
+デプロイ準備の整理(2026-10-19〜22)
+- 本番ビルド(`npm run build`)は通る。起動は `npm start`(標準)。`engines` は未指定で、手元は Node 21.6.0(LTSではない)。Render では環境変数 `NODE_VERSION` で LTS に固定し、初回のビルドログで通るか確認する
+- Render に登録する環境変数は17個: Clerk 5(公開キー・シークレットキー・Webhookシークレット・サインイン後/サインアップ後のURL)、Supabase 3(URL・anonキー・service roleキー)、Google Maps 2(APIキー・Map ID)、Stripe 4(シークレットキー・価格2つ・Webhookシークレット)、URL 2(`NEXT_PUBLIC_APP_URL`・`NEXT_PUBLIC_SITE_URL`)、`NODE_VERSION`
+- `NEXT_PUBLIC_` で始まる変数はビルド時に埋め込まれるため、初回デプロイの前に設定し、後から変えたら再ビルドが必要。`NEXT_PUBLIC_SITE_URL` が未設定だと、共有ボタン・OGP が localhost を指す。`NEXT_PUBLIC_APP_URL` が未設定だと、Stripe の決済後の戻り先が壊れる
+- `.env` 系のファイルは Git で追跡されていない(確認済み)。GitHub の main に push 済み
+
+本番用 Supabase プロジェクトを新規作成(決定の実行)
+- 開発用(`oaiterental`)と分け、本番用に `oaiterental-prod`(東京)を新規作成。テストデータは本番に持ち込まない
+- 現在のスキーマを Supabase CLI(`supabase db dump -f schema.sql`、Docker Desktop が必要)で書き出し、本番用の SQL Editor で流し込んだ。テーブル11個(RLSはすべて有効)とビュー2つ(`admin_subscriptions`・`public_user_profiles`)を確認済み
+- 通知(`/api/notifications`)は専用のテーブルを使わず、`inquiry_threads` と `announcements` から集計している(テーブルの抜けではない)
+- 写真用のバケット `cast-photos` を本番用に手作業で作成: 公開、5MB上限、jpeg/png/webp のみ(コード側の `ALLOWED_TYPES` と5MB制限に合わせた。開発用は制限なし)
+- 本番プロジェクトの作成時の Security 設定: Data API はオン、Automatically expose new tables はオフ、Enable automatic RLS はオフ(`schema.sql` に権限の設定とRLSの有効化が含まれているため)
+- 本番プロジェクトの接続情報(URL・anonキー・service roleキー)は控え済み。チャットなどには出さない
+- `schema.sql` をリポジトリに追加(以前の「SQLがリポジトリに未保存」の解消)。`supabase/`(CLIの紐づけ情報)は `.gitignore` に追加
+- `supabase link` の紐づけ先は開発用のまま。本番への操作は SQL Editor で行う(取り違え防止)
+
+まだやること
+- 本番の Clerk インスタンスの作成と、Webhook の登録
+- 本番の Stripe のキー・価格・Webhook の作成
+- Render の Web Service の作成と環境変数の登録
+- 独自ドメイン `oaiterental.info` の接続
+- Google Maps のAPIキーに本番ドメインを許可
+- 管理者権限(`users.role` を admin にする)は、本番の Clerk でアカウントを作った後に設定する
+- `schema.sql` に含まれない設定がないか(Auth の設定やメール設定など)の見直しは未確認
 
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。`applications`(POST)にも適用済み(2026-10-19)。他のAPIは意図的に未適用。test2・test4〜test7 は必要になったら同様に行を追加する

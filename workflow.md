@@ -307,7 +307,7 @@ Stripe の通知と、データの修正
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。`applications`(POST)にも適用済み(2026-10-19)。他のAPIは意図的に未適用。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
 - 規約・ポリシー・特商法の制定日(`OPERATOR.enacted`)は、ローンチ日に確定する(現在は「2026年10月◯日」のまま)
-- 特商法の支払時期、解約・返金の運用は仮置きのまま(税込は確定済み)
+- 特商法の支払時期・解約・返金の文面は2026-10-25に実際の挙動(再加入時トライアルなし・プラン変更時の日割り精算)に合わせて修正済み(税込は確定済み)。弁護士確認は未了
 - CTAのリンク先を、Clerkのサインアップ後リダイレクトに合わせて調整(`CTA_USER` / `CTA_CAST`)
 - 弁護士確認(上記4箇所に加え、共有に特典を付ける場合はステルスマーケティング規制の表示ルールも確認)
 - 公開URLの確定後に `NEXT_PUBLIC_SITE_URL` を設定し、共有ボタンの動作を確認

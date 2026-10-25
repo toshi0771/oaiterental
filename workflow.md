@@ -298,6 +298,11 @@ Stripe の通知と、データの修正
 - 管理者権限(`users.role` を admin にする)は、本番の Clerk でアカウントを作った後に設定する
 - `schema.sql` に含まれない設定がないか(Auth の設定やメール設定など)の見直しは未確認
 
+### 完了・決定事項(2026-10-25)
+- Stripeの「本番環境を有効化」画面を開き、本番がまだ有効化されていないことを確認した(入力は始めていない)
+- デプロイ順序を見直し: Stripeの審査はサイトの内容を見られるため、先にRenderへデプロイして oaiterental.info を公開(決済はテストキーのまま)し、そのあとStripeの本番有効化を申請する流れにする
+- 特商法ページ(app/legal/Tokushoho.tsx)を修正: 「お支払時期」に再加入時はトライアルなしで申込み時点から請求されること・プラン変更時に日割り精算が発生することがある旨を追記。「解約・返金」に「プラン変更に伴う日割りの精算を除き」を補足(コミット 9dfc20f、push済み)
+
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。`applications`(POST)にも適用済み(2026-10-19)。他のAPIは意図的に未適用。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)

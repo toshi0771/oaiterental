@@ -196,6 +196,12 @@ export default function HomePage() {
             )}
           </Link>
 
+          <Show when="signed-in">
+            <Link href="/profile" className="text-sm text-gray-600 hover:text-green-500">
+              プロフィール
+            </Link>
+          </Show>
+
           <Link href="/notices" className="relative text-sm text-gray-600 hover:text-green-500">
             お知らせ
             {noticeBadge > 0 && (
@@ -263,6 +269,11 @@ export default function HomePage() {
               <span className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{unreadCount}</span>
             )}
           </Link>
+          <Show when="signed-in">
+            <Link href="/profile" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700">
+              プロフィール
+            </Link>
+          </Show>
           <Link href="/notices" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 flex items-center gap-2">
             お知らせ
             {noticeBadge > 0 && (

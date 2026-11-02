@@ -8,6 +8,9 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState('')
   const [ageRange, setAgeRange] = useState('')
+  const [realName, setRealName] = useState('')
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 useEffect(() => {
@@ -19,6 +22,7 @@ useEffect(() => {
       if (data.nickname) setNickname(data.nickname)
       if (data.gender) setGender(data.gender)
       if (data.age_range) setAgeRange(data.age_range)
+      if (data.real_name) setRealName(data.real_name)
     } catch {
       // 初回登録時はデータがなくてもエラーにしない
     }
@@ -27,7 +31,7 @@ useEffect(() => {
 }, [])
 
   const handleSubmit = async () => {
-    if (!nickname || !gender || !ageRange) {
+    if (!nickname || !realName.trim() || !gender || !ageRange) {
       setError('すべての項目を入力してください')
       return
     }
@@ -39,7 +43,7 @@ useEffect(() => {
       const res = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, gender, age_range: ageRange }),
+        body: JSON.stringify({ nickname, gender, age_range: ageRange, real_name: realName, age_confirmed: ageConfirmed, terms_accepted: termsAccepted }),
       })
 
       if (!res.ok) {
@@ -64,6 +68,22 @@ useEffect(() => {
         <p className="text-center text-gray-500 text-sm mb-8">
           基本情報を設定してください
         </p>
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            本名
+          </label>
+          <input
+            type="text"
+            value={realName}
+            onChange={(e) => setRealName(e.target.value)}
+            placeholder="例：山田 太郎"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            本名は管理者のみが確認できます。他のユーザーには表示されません。
+          </p>
+        </div>
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -120,13 +140,39 @@ useEffect(() => {
           </div>
         </div>
 
+        <div className="mb-6 space-y-3">
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              className="mt-1"
+            />
+            <span>私は18歳以上です</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-green-600 underline">
+                利用規約・プライバシーポリシー
+              </a>
+              に同意します
+            </span>
+          </label>
+        </div>
+
         {error && (
           <p className="text-red-500 text-sm text-center mb-4">{error}</p>
         )}
 
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !ageConfirmed || !termsAccepted}
           className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? '保存中...' : '保存して始める'}

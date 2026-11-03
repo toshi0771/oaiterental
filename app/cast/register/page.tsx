@@ -12,6 +12,8 @@ export default function CastRegisterPage() {
   const [ageRange, setAgeRange] = useState('')
   const [bio, setBio] = useState('')
   const [realName, setRealName] = useState('')
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [rateMin, setRateMin] = useState('')
   const [rateMax, setRateMax] = useState('')
   const [area, setArea] = useState('')
@@ -61,7 +63,7 @@ export default function CastRegisterPage() {
   }, [])
 
     const handleSubmit = async () => {
-      if (!ageRange || !rateMin || !rateMax || !area) {
+      if (!ageRange || !rateMin || !rateMax || !area || !realName.trim()) {
         setError('すべての項目を入力してください')
         return
     }
@@ -81,6 +83,8 @@ export default function CastRegisterPage() {
           hourly_rate_max: Number(rateMax),
           area,
           realName,
+          age_confirmed: ageConfirmed,
+          terms_accepted: termsAccepted,
           }),
        })
 
@@ -253,13 +257,39 @@ export default function CastRegisterPage() {
           </div>
         </div>
 
+        <div className="mb-6 space-y-3">
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              className="mt-1"
+            />
+            <span>私は18歳以上です</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-green-600 underline">
+                利用規約・プライバシーポリシー
+              </a>
+              に同意します
+            </span>
+          </label>
+        </div>
+
         {error && (
           <p className="text-red-500 text-sm text-center mb-4">{error}</p>
         )}
 
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !ageConfirmed || !termsAccepted}
           className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? '登録中...' : 'キャスト登録する'}

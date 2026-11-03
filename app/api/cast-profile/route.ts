@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { photo_url, age_range, bio, hourly_rate_min, hourly_rate_max, area, realName } = body
+  const { photo_url, age_range, bio, hourly_rate_min, hourly_rate_max, area, realName, age_confirmed, terms_accepted } = body
 
   if (!age_range) {
     return NextResponse.json({ error: '年代は必須です' }, { status: 400 })
@@ -71,6 +71,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'エリアは必須です' }, { status: 400 })
   }
   const { lat, lng } = AREA_COORDS[area]
+  if (!realName?.trim()) {
+    return NextResponse.json({ error: '本名は必須です' }, { status: 400 })
+  }
+  if (age_confirmed !== true) {
+    return NextResponse.json({ error: '18歳以上であることの確認が必要です' }, { status: 400 })
+  }
+  if (terms_accepted !== true) {
+    return NextResponse.json({ error: '利用規約・プライバシーポリシーへの同意が必要です' }, { status: 400 })
+  }
+  const now = new Date().toISOString()
 
   const meId = await ensureUserId()
   if (!meId) {
@@ -110,7 +120,7 @@ export async function POST(request: Request) {
   // role を cast または both に更新
   await supabaseAdmin
     .from('users')
-    .update({ role: 'cast', real_name: realName })
+    .update({ role: 'cast', real_name: realName.trim(), age_confirmed_at: now, terms_accepted_at: now })
     .eq('id', userRow.id)
 
   return NextResponse.json({ success: true })

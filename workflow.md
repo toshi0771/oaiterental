@@ -310,6 +310,18 @@ Stripe の通知と、データの修正
 - 本番のシークレットキー(名前: render-prod)とWebhookの署名シークレットは、Macのメモに保管している(文字列はここに書かない)。Renderの環境変数に登録するまで保管しておく。公開キー(pk_live_)はClerkのAPI keys画面でいつでも確認できる
 - 不要なシークレットキー1本(一部を誤って消したもの)は削除済み。default のキーは残している
 
+### 完了・決定事項(2026-10-29〜11-04)本番デプロイと通し確認
+- Renderにoaiterentalサービスを作成(Region=Singapore、$7プラン、NODE_VERSION=22)。環境変数はClerk本番5個、Supabase本番3個、Google Maps 2個(開発キー流用)、Stripe(sk_test系)、NEXT_PUBLIC_APP_URL・NEXT_PUBLIC_SITE_URL(https://oaiterental.info)を登録し、初回デプロイ成功(1回目はStripe変数未入力でビルド失敗。想定内)
+- カスタムドメイン: スタードメインにAレコード(@ → 216.24.57.1)とwwwのCNAME(→ oaiterental.onrender.com)を追加。Renderで2件ともVerified・証明書Issued。wwwはルートへリダイレクト
+- StripeサンドボックスにWebhook oaiterental-render(https://oaiterental.info/api/webhooks/stripe)を作成。購読は checkout.session.completed / customer.subscription.updated / customer.subscription.deleted の3つ(スナップショット形式)。署名シークレットはRenderのSTRIPE_WEBHOOK_SECRETに設定
+- Clerk本番のWebhook(user.created)が500で失敗 → 原因はRenderのSUPABASE_SERVICE_ROLE_KEYの誤り(RLSで拒否された)。本番のservice_roleキーを入れ直して解決し、Replayで本番usersに行が作られることを確認
+- メニューに「プロフィール」リンクを追加(ログイン中のみ、PC用・スマホ用の両方。app/page.tsx)
+- /profile と /cast/register に、本名必須と、「18歳以上」「利用規約・プライバシーポリシー同意」のチェック2つを追加(両方チェックしないと送信不可)。同意日時を users.age_confirmed_at / terms_accepted_at に保存(app/api/profile/route.ts、app/api/cast-profile/route.ts)。カラムは開発・本番の両DBに追加済み
+- 決定: ユーザーにも本名を必須にした(トラブル時の記録のため)。本名は管理者のみ閲覧で、公開はニックネームのみ。自己申告のため本人確認としての強さはない
+- 本番での通し確認(サンドボックス): Clerk登録 → users作成、プロフィール保存、キャスト登録、基本プランのCheckout(テストカード)→ Stripe Webhook 200 → subscriptions反映(status=trialing)、ダッシュボード表示、基本⇔プロの変更(画面・DB・Stripeの価格が一致)。トライアル中のため請求は発生せず、日割り精算は未確認
+- cast-profile の AREA_COORDS は7エリア対応済みであることを確認した
+- 残: Google Mapsキーのリファラー制限に本番ドメインを追加 / プライバシーポリシー(/legal)に本名の収集項目・利用目的を明記 / ユーザー側の申込み → キャスト承認 → マッチング確定の本番通し確認 / 弁護士確認(年齢確認の要否を含む) / Stripe本番申請 → 通過後に sk_live・本番の価格ID・本番用Webhookへ差し替え / プラン変更の日割り精算はトライアル終了後の実請求で確認
+
 ### 未対応(TODO)
 - 『User not found』の原因(2026-10-13): Clerkのアカウント test2〜test7(7月中旬作成)は、当時 Webhook が届かず Supabase の `users` に行が無かった。test3 は手動で行を追加して解消(`users` の必須列は `clerk_user_id` `real_name` `email` `gender`(male/female/other) `nickname`)。現在の Webhook(ngrokのURL)はエラー率0.0%で正常。キャスト登録API(`cast-profile` とその写真アップロード)には `ensureUserId()` で対策済み(2026-10-15)。`applications`(POST)にも適用済み(2026-10-19)。他のAPIは意図的に未適用。test2・test4〜test7 は必要になったら同様に行を追加する
 - デフォルトのマップ表示は `app/page.tsx` の `defaultZoom={12}`。もう少し拡大するなら13(拡大しすぎると、エントリーが少ない間はピンが画面外になる)
@@ -317,8 +329,8 @@ Stripe の通知と、データの修正
 - 特商法の支払時期・解約・返金の文面は2026-10-25に実際の挙動(再加入時トライアルなし・プラン変更時の日割り精算)に合わせて修正済み(税込は確定済み)。弁護士確認は未了
 - CTAのリンク先を、Clerkのサインアップ後リダイレクトに合わせて調整(`CTA_USER` / `CTA_CAST`)
 - 弁護士確認(上記4箇所に加え、共有に特典を付ける場合はステルスマーケティング規制の表示ルールも確認)
-- 公開URLの確定後に `NEXT_PUBLIC_SITE_URL` を設定し、共有ボタンの動作を確認
-- 年齢確認・本人確認・通報/ブロックは未実装のため、LPには載せていない(実装後に追記)
+- `NEXT_PUBLIC_SITE_URL` は設定済み(2026-10-29、https://oaiterental.info)。共有ボタンの動作確認が残り
+- 本人確認・通報/ブロックは未実装のため、LPには載せていない(実装後に追記)。18歳以上は自己申告のチェックのみ実装(2026-11-02〜03)で、年齢確認としての要否は弁護士確認の論点
 
 ---
 
@@ -341,7 +353,7 @@ Stripe の通知と、データの修正
 1. Stripe Link確認メールが受信できない問題(詳細未特定、優先度低)
 2. 本番前チェックリストの継続的な洗い出し(法務・eKYC・安全対策など、事業計画書レベルの課題は別途)
 3. (将来的な検討事項)ヘッダー通知バッジとメッセージ未読バッジの統合
-4. **本番反映の準備**: お相手レンタルは**Renderに未デプロイ**(2026-10-05確認。Renderには outreach-tool / stock-screener-jp / finance-matching の3つのみ)。そのため、pushで意図せず本番公開される心配はない。本番公開時は新規サービスとして初回デプロイする。本番Supabaseが開発と別プロジェクトの場合は、全マイグレーション(Phase 12の`announcements`/`inquiry_threads`/`inquiry_messages`を含む)を本番側にも実行する
+4. **本番反映**: 2026-10-29にRenderへ初回デプロイ済み(oaiterental.info で稼働中)。**mainへのpushでRenderに自動デプロイされる**(workflow.mdだけの変更でも再ビルドが走る)。DBのスキーマ変更は、コードをpushする前に本番Supabase(oaiterental-prod)へ先に反映する(開発DBと本番DBは別プロジェクト)
 5. Phase 12で追加したプラン変更・サブスク履歴・月次サマリー(MRR)は、本番相当のStripeデータでの確認がまだ(バグチェックで実施)
 
 ---

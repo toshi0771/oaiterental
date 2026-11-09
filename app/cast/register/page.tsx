@@ -14,6 +14,7 @@ export default function CastRegisterPage() {
   const [realName, setRealName] = useState('')
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [alreadyConsented, setAlreadyConsented] = useState(false)
   const [rateMin, setRateMin] = useState('')
   const [rateMax, setRateMax] = useState('')
   const [area, setArea] = useState('')
@@ -48,6 +49,7 @@ export default function CastRegisterPage() {
         const res = await fetch('/api/cast-profile')
         if (!res.ok) return
         const data = await res.json()
+        if (data.already_consented) setAlreadyConsented(true)
         if (data.photo_url) setPhotoUrl(data.photo_url)
         if (data.age_range) setAgeRange(data.age_range)
         if (data.bio) setBio(data.bio)
@@ -257,6 +259,7 @@ export default function CastRegisterPage() {
           </div>
         </div>
 
+        {!alreadyConsented && (
         <div className="mb-6 space-y-3">
           <label className="flex items-start gap-2 text-sm text-gray-700">
             <input
@@ -282,6 +285,7 @@ export default function CastRegisterPage() {
             </span>
           </label>
         </div>
+        )}
 
         {error && (
           <p className="text-red-500 text-sm text-center mb-4">{error}</p>
@@ -289,7 +293,7 @@ export default function CastRegisterPage() {
 
         <button
           onClick={handleSubmit}
-          disabled={loading || !ageConfirmed || !termsAccepted}
+          disabled={loading || (!alreadyConsented && (!ageConfirmed || !termsAccepted))}
           className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? '登録中...' : 'キャスト登録する'}

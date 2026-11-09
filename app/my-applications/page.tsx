@@ -50,7 +50,7 @@ export default function MyApplicationsPage() {
   const handleComplete = async (bookingId: string) => {
     setCompleting(bookingId)
     try {
-      const res = await fetch(`/api/bookings/${bookingId}/complete`, { method: 'POST' })
+      const res = await fetch(`/api/bookings/${bookingId}/complete`, { method: 'PATCH' })
       if (res.ok) {
         fetch('/api/applications/mine')
           .then(res => res.json())

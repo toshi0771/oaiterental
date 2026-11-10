@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('nickname, gender, age_range, real_name')
+    .select('nickname, gender, age_range, real_name, photo_url, area, bio, age_confirmed_at, terms_accepted_at')
     .eq('clerk_user_id', userId)
     .single()
 
@@ -21,6 +21,9 @@ export async function GET() {
   return NextResponse.json({
     ...data,
     real_name: data.real_name === 'unknown' ? '' : data.real_name,
+    already_consented: !!(data.age_confirmed_at && data.terms_accepted_at),
+    age_confirmed_at: undefined,
+    terms_accepted_at: undefined,
   })
 }
 export async function POST(request: Request) {
@@ -36,7 +39,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { nickname, gender, age_range, real_name, age_confirmed, terms_accepted } = body
+  const { nickname, gender, age_range, real_name, age_confirmed, terms_accepted, photo_url, area, bio } = body
+
+  const AREAS = ['北摂', '京阪沿線', '大阪北', '大阪南', '大阪東', '近鉄沿線', '泉州']
+  if (area && !AREAS.includes(area)) {
+    return NextResponse.json({ error: 'エリアが正しくありません' }, { status: 400 })
+  }
+  if (bio && String(bio).length > 500) {
+    return NextResponse.json({ error: '自己紹介は500文字以内にしてください' }, { status: 400 })
+  }
+
+  // 同意日時が記録済みなら、チェックを求めず日時も上書きしない
+  const { data: consentRow } = await supabaseAdmin
+    .from('users')
+    .select('age_confirmed_at, terms_accepted_at')
+    .eq('clerk_user_id', userId)
+    .maybeSingle()
+  const alreadyConsented = !!(consentRow?.age_confirmed_at && consentRow?.terms_accepted_at)
 
   if (!nickname?.trim()) {
     return NextResponse.json({ error: 'ニックネームは必須です' }, { status: 400 })
@@ -50,10 +69,10 @@ export async function POST(request: Request) {
   if (!real_name?.trim()) {
     return NextResponse.json({ error: '本名は必須です' }, { status: 400 })
   }
-  if (age_confirmed !== true) {
+  if (!alreadyConsented && age_confirmed !== true) {
     return NextResponse.json({ error: '18歳以上であることの確認が必要です' }, { status: 400 })
   }
-  if (terms_accepted !== true) {
+  if (!alreadyConsented && terms_accepted !== true) {
     return NextResponse.json({ error: '利用規約・プライバシーポリシーへの同意が必要です' }, { status: 400 })
   }
   const now = new Date().toISOString()
@@ -68,7 +87,7 @@ export async function POST(request: Request) {
   if (existing) {
   const { error: updateError } = await supabaseAdmin
     .from('users')
-    .update({ nickname, gender, age_range, real_name: real_name.trim(), age_confirmed_at: now, terms_accepted_at: now })
+    .update({ nickname, gender, age_range, real_name: real_name.trim(), photo_url: photo_url || null, area: area || null, bio: bio || null, ...(alreadyConsented ? {} : { age_confirmed_at: now, terms_accepted_at: now }) })
     .eq('clerk_user_id', userId)
   error = updateError
   } else {
@@ -83,6 +102,9 @@ export async function POST(request: Request) {
       gender,
       age_range,
       real_name: real_name.trim(),
+      photo_url: photo_url || null,
+      area: area || null,
+      bio: bio || null,
       age_confirmed_at: now,
       terms_accepted_at: now,
       email,

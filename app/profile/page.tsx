@@ -11,6 +11,11 @@ export default function ProfilePage() {
   const [realName, setRealName] = useState('')
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [alreadyConsented, setAlreadyConsented] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [area, setArea] = useState('')
+  const [bio, setBio] = useState('')
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 useEffect(() => {
@@ -23,12 +28,35 @@ useEffect(() => {
       if (data.gender) setGender(data.gender)
       if (data.age_range) setAgeRange(data.age_range)
       if (data.real_name) setRealName(data.real_name)
+      if (data.photo_url) setPhotoUrl(data.photo_url)
+      if (data.area) setArea(data.area)
+      if (data.bio) setBio(data.bio)
+      if (data.already_consented) setAlreadyConsented(true)
     } catch {
       // 初回登録時はデータがなくてもエラーにしない
     }
   }
   loadProfile()
 }, [])
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/cast-profile/photo', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'アップロードに失敗しました')
+      setPhotoUrl(data.url)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!nickname || !realName.trim() || !gender || !ageRange) {
@@ -43,7 +71,7 @@ useEffect(() => {
       const res = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, gender, age_range: ageRange, real_name: realName, age_confirmed: ageConfirmed, terms_accepted: termsAccepted }),
+        body: JSON.stringify({ nickname, gender, age_range: ageRange, real_name: realName, age_confirmed: ageConfirmed, terms_accepted: termsAccepted, photo_url: photoUrl, area, bio }),
       })
 
       if (!res.ok) {
@@ -68,6 +96,24 @@ useEffect(() => {
         <p className="text-center text-gray-500 text-sm mb-8">
           基本情報を設定してください
         </p>
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            プロフィール写真（任意）
+          </label>
+          <div className="flex items-center gap-3">
+            {photoUrl ? (
+              <img src={photoUrl} alt="プロフィール写真" className="w-16 h-16 rounded-full object-cover border border-gray-200" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200" />
+            )}
+            <div className="text-xs text-gray-500">
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} disabled={uploading} className="text-sm" />
+              <p className="mt-1">顔写真でなくてもOKです（後ろ姿、アバター、イラストなど）。5MBまで。</p>
+              {uploading && <p className="mt-1 text-green-600">アップロード中...</p>}
+            </div>
+          </div>
+        </div>
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -119,7 +165,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             年代
           </label>
@@ -140,7 +186,44 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="mb-6 space-y-3">
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            エリア（任意）
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {['北摂', '京阪沿線', '大阪北', '大阪南', '大阪東', '近鉄沿線', '泉州'].map((a) => (
+              <button
+                key={a}
+                onClick={() => setArea(area === a ? '' : a)}
+                className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
+                  area === a
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                }`}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            自己紹介（任意）
+          </label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={500}
+            rows={3}
+            placeholder="例：カフェ巡りが好きです。"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+{!alreadyConsented && (
+                <div className="mb-6 space-y-3">
           <label className="flex items-start gap-2 text-sm text-gray-700">
             <input
               type="checkbox"
@@ -165,6 +248,7 @@ useEffect(() => {
             </span>
           </label>
         </div>
+        )}
 
         {error && (
           <p className="text-red-500 text-sm text-center mb-4">{error}</p>
@@ -172,7 +256,7 @@ useEffect(() => {
 
         <button
           onClick={handleSubmit}
-          disabled={loading || !ageConfirmed || !termsAccepted}
+          disabled={loading || uploading || (!alreadyConsented && (!ageConfirmed || !termsAccepted))}
           className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? '保存中...' : '保存して始める'}

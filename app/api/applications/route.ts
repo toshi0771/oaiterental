@@ -102,7 +102,12 @@ export async function GET() {
         cast_id
       ),
       users!applications_applicant_id_fkey (
-        nickname
+        nickname,
+        photo_url,
+        area,
+        bio,
+        age_range,
+        gender
       )
     `)
     .eq('entries.cast_id', castProfile.id)

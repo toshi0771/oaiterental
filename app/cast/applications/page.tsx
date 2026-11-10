@@ -22,6 +22,11 @@ type Application = {
   }
   users: {
     nickname: string
+    photo_url: string | null
+    area: string | null
+    bio: string | null
+    age_range: string | null
+    gender: string | null
   }
 }
 
@@ -144,11 +149,26 @@ export default function ApplicationsPage() {
           {applications.map(app => (
             <div key={app.id} className="border rounded p-3 bg-white shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-800">{app.users.nickname}さん</span>
+                <div className="flex items-center gap-2">
+                  {app.users.photo_url ? (
+                    <img src={app.users.photo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200" />
+                  )}
+                  <div>
+                    <span className="font-medium text-gray-800">{app.users.nickname}さん</span>
+                    <p className="text-xs text-gray-500">
+                      {[app.users.age_range, app.users.gender === 'male' ? '男性' : app.users.gender === 'female' ? '女性' : null, app.users.area].filter(Boolean).join('・')}
+                    </p>
+                  </div>
+                </div>
                 <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
                   {app.status === 'pending' ? '承認待ち' : app.status === 'confirmed' ? '確定済み' : '不成立'}
                 </span>
               </div>
+              {app.users.bio && (
+                <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{app.users.bio}</p>
+              )}
               <p className="text-sm text-gray-600 mt-1">
                 {app.entries.entry_date} {app.entries.start_time?.slice(0, 5)}〜{app.entries.end_time?.slice(0, 5)}
               </p>

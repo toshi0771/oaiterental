@@ -6,6 +6,7 @@ import { APIProvider, Map, AdvancedMarker, InfoWindow, Pin } from '@vis.gl/react
 import { Show, UserButton } from '@clerk/nextjs'
 import LegalLinks from './components/LegalLinks'
 import ShareButtons from './components/ShareButtons'
+import InstallAppButton from './components/InstallAppButton'
 
 type Entry = {
   id: string
@@ -187,6 +188,7 @@ export default function HomePage() {
       <header className="bg-white shadow px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-800">お相手レンタル</h1>
         <nav className="hidden md:flex items-center gap-4">
+          <InstallAppButton />
           <button
             onClick={() => setShowGuide(true)}
             className="text-sm text-gray-600 hover:text-green-500"
@@ -268,6 +270,7 @@ export default function HomePage() {
       {/* 狭い画面: ハンバーガーメニュー本体 */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 right-0 z-20 bg-white shadow-lg border-t border-gray-100 px-4 py-3 flex flex-col gap-3">
+          <InstallAppButton size={36} />
           <button
             onClick={() => {
               setMenuOpen(false)

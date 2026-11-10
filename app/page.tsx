@@ -349,7 +349,7 @@ export default function HomePage() {
                      selected.cast_profiles?.users?.gender === 'male' ? '男性' : 'その他'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {selected.entry_date} {selected.start_time}〜{selected.end_time}
+                    {selected.entry_date} {selected.start_time?.slice(0, 5)}〜{selected.end_time?.slice(0, 5)}
                   </p>
                   <p className="text-sm text-gray-600">
                     目的：{selected.purpose}

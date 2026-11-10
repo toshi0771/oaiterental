@@ -150,7 +150,7 @@ export default function ApplicationsPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                {app.entries.entry_date} {app.entries.start_time}〜{app.entries.end_time}
+                {app.entries.entry_date} {app.entries.start_time?.slice(0, 5)}〜{app.entries.end_time?.slice(0, 5)}
               </p>
               <p className="text-sm text-gray-600">目的: {app.entries.purpose}</p>
               {app.message && <p className="text-sm text-gray-700 mt-1">{app.message}</p>}

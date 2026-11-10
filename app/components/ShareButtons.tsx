@@ -55,6 +55,7 @@ export default function ShareButtons({ tone = 'light', size = 'md', path = '/lp'
         <li key={i.key}>
           <a
             className={styles.btn}
+            data-network={i.key}
             href={i.href}
             target="_blank"
             rel="noopener noreferrer"

@@ -53,3 +53,31 @@
   width: 16px;
   height: 16px;
 }
+
+/* ブランドカラー(X=黒、Facebook=青、LINE=緑) */
+.row .btn[data-network='x'] {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.row .btn[data-network='facebook'] {
+  background: #1877f2;
+  border-color: #1877f2;
+  color: #fff;
+}
+
+.row .btn[data-network='line'] {
+  background: #06c755;
+  border-color: #06c755;
+  color: #fff;
+}
+
+.row .btn[data-network]:hover {
+  filter: brightness(1.15);
+}
+
+/* 暗い背景では、黒のXが沈まないよう白い縁を付ける */
+.row.dark .btn[data-network] {
+  border-color: #fff;
+}

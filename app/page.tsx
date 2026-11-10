@@ -194,6 +194,10 @@ export default function HomePage() {
             初めての方へ
           </button>
 
+          <Link href="/lp" className="text-sm text-gray-600 hover:text-green-500">
+            サービス紹介
+          </Link>
+
           <Link href="/my-applications" className="relative text-sm text-gray-600 hover:text-green-500">
             申込み状況
             {unreadCount > 0 && (
@@ -273,6 +277,9 @@ export default function HomePage() {
           >
             初めての方へ
           </button>
+          <Link href="/lp" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700">
+            サービス紹介
+          </Link>
           <Link href="/my-applications" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 flex items-center gap-2">
             申込み状況
             {unreadCount > 0 && (

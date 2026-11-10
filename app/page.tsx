@@ -126,6 +126,7 @@ export default function HomePage() {
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set()) 
   const [unreadCount, setUnreadCount] = useState(0)
   const [noticeBadge, setNoticeBadge] = useState(0)
+  const [pendingCount, setPendingCount] = useState(0)
   const [castReviews, setCastReviews] = useState<{
     reviews: { id: string; comment: string | null }[]
   } | null>(null)
@@ -141,6 +142,12 @@ export default function HomePage() {
     fetch('/api/notifications')
       .then(res => (res.ok ? res.json() : null))
       .then(data => data && setNoticeBadge(data.badge))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/applications/pending-count')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => data && setPendingCount(data.count))
   }, [])
 
   useEffect(() => {
@@ -219,6 +226,9 @@ export default function HomePage() {
           <Show when="signed-in">
           <Link href="/cast" className="text-sm font-bold text-green-600 hover:text-green-500">
             キャスト
+            {pendingCount > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5">{pendingCount}</span>
+            )}
           </Link>
           <UserButton />
           </Show>
@@ -244,7 +254,7 @@ export default function HomePage() {
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            {unreadCount + noticeBadge > 0 && (
+            {unreadCount + noticeBadge + pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
             )}
           </button>
@@ -283,6 +293,9 @@ export default function HomePage() {
           <Show when="signed-in">
             <Link href="/cast" onClick={() => setMenuOpen(false)} className="text-sm font-bold text-green-600">
               キャスト
+            {pendingCount > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5">{pendingCount}</span>
+            )}
             </Link>
           </Show>
           <div className="pt-1">

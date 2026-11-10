@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { requireCast } from '@/lib/cast'
 import { getMe } from '@/lib/me'
 import { getNotificationStatus } from '@/lib/notifications'
+import { getPendingApplicationCount } from '@/lib/cast-pending'
 
 const PLAN_LABEL: Record<string, string> = {
   free: '無料中',
@@ -20,11 +21,12 @@ export default async function CastDashboardPage() {
 
   const me = await getMe()
   const status = me ? await getNotificationStatus(me) : null
+  const pendingCount = me ? await getPendingApplicationCount(me) : 0
   const noticeBadge = status ? status.unseenNotices + (status.inquiryUnread ? 1 : 0) : 0
 
   const items = [
     { href: '/cast/register', title: 'プロフィール管理', desc: '基本情報・エリア・時給の編集', gated: false },
-    { href: '/cast/applications', title: '申込み一覧', desc: 'ユーザーからの申込みの確認・承認、待ち合わせのメッセージ', gated: false },
+    { href: '/cast/applications', title: '申込み一覧', desc: 'ユーザーからの申込みの確認・承認、待ち合わせのメッセージ', gated: false, badge: pendingCount },
     { href: '/cast/messages', title: 'メッセージ管理', desc: 'すべての申込者とのやり取りを一覧でまとめて確認', gated: true },
     { href: '/cast/reviews', title: 'レビュー管理', desc: '受け取った感想の一覧', gated: true },
     { href: '/cast/history', title: 'マッチング履歴', desc: '過去の確定・完了した予約一覧', gated: true },

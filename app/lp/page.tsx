@@ -24,7 +24,7 @@ const body = Noto_Sans_JP({
  * ============================================================
  */
 export const metadata: Metadata = {
-  title: 'お相手レンタル | 大阪で、今日、近所で、1時間だけ',
+  title: 'お相手レンタル | 大阪で、スケジュールに合わせて、お相手探せます',
   description:
     '大阪全域で、時給をもらう人と時給を払う人が地図でつながる、時間単位のお相手マッチング。ユーザーは無料。',
   // OGP画像の絶対URLを作るための基準。公開後は NEXT_PUBLIC_SITE_URL に本番URLを設定
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false }, // TODO: 法務確認後に index: true へ
   openGraph: {
     title: 'お相手レンタル',
-    description: '今日、近所で、1時間だけ。大阪全域の時間単位マッチング。',
+    description: 'スケジュールに合わせて、レンタルでお相手探せます。大阪全域の時間単位マッチング。',
     type: 'website',
     images: [{ url: '/ogp.png', width: 1200, height: 630, alt: 'お相手レンタル' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'お相手レンタル',
-    description: '今日、近所で、1時間だけ。大阪全域の時間単位マッチング。',
+    description: 'スケジュールに合わせて、レンタルでお相手探せます。大阪全域の時間単位マッチング。',
     images: ['/ogp.png'],
   },
 }
@@ -232,11 +232,11 @@ export default function LandingPage() {
           <div>
             <p className={styles.brand}>お相手レンタル</p>
             <h1 className={`${styles.heading} ${styles.heroTitle}`}>
-              今日、
+              スケジュールに合わせて、
               <br />
-              近所で、
+              レンタルで、
               <br />
-              1時間だけ。
+              お相手探せます。
             </h1>
             <p className={styles.heroSub}>
               大阪全域で、時給をもらう人と、時給を払う人が地図でつながります。ユーザーは無料で使えます。

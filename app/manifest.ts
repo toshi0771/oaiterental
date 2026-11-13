@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'お相手レンタル',
     short_name: 'お相手レンタル',
-    description: '今日、近所で、1時間だけ。大阪の時間単位マッチング',
+    description: 'スケジュールに合わせて、レンタルでお相手探せます。大阪の時間単位マッチング',
     start_url: '/',
     display: 'standalone',
     background_color: '#1b2440',

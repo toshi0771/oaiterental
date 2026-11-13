@@ -9,7 +9,7 @@ type Props = {
 // 本番のURL。Renderに公開したら .env / Renderの環境変数に設定する
 // 例: NEXT_PUBLIC_SITE_URL=https://oaiterental.info
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-const TEXT = 'お相手レンタル:今日、近所で、1時間だけ。大阪の時間単位マッチング'
+const TEXT = 'お相手レンタル:スケジュールに合わせて、レンタルでお相手探せます。大阪の時間単位マッチング'
 const HASHTAG = 'お相手レンタル'
 
 const ICONS: Record<string, string> = {

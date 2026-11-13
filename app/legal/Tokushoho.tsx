@@ -47,7 +47,7 @@ const ROWS: { label: string; body: React.ReactNode }[] = [
   },
   {
     label: 'お支払方法',
-    body: 'クレジットカード(決済代行: Stripe)',
+    body: 'クレジットカード、Apple Pay、Google Pay(決済代行: Stripe)',
   },
   {
     label: 'お支払時期',

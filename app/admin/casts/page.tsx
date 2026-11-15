@@ -65,7 +65,7 @@ export default function AdminCastsPage() {
             <tr>
               <th className="p-2">ニックネーム</th>
               <th className="p-2">エリア</th>
-              <th className="p-2">時給レンジ</th>
+              <th className="p-2">報酬レンジ</th>
               <th className="p-2">プラン</th>
               <th className="p-2">トライアル終了日</th>
               <th className="p-2">登録日</th>

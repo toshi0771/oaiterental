@@ -73,10 +73,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '年代は必須です' }, { status: 400 })
   }
   if (!hourly_rate_min || !hourly_rate_max) {
-    return NextResponse.json({ error: '時給の範囲は必須です' }, { status: 400 })
+    return NextResponse.json({ error: '報酬の範囲は必須です' }, { status: 400 })
   }
   if (hourly_rate_max < hourly_rate_min) {
-    return NextResponse.json({ error: '時給上限は下限以上にしてください' }, { status: 400 })
+    return NextResponse.json({ error: '報酬上限は下限以上にしてください' }, { status: 400 })
   }
   if (!area || !AREA_COORDS[area]) {
     return NextResponse.json({ error: 'エリアは必須です' }, { status: 400 })

@@ -26,7 +26,7 @@ const body = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: 'お相手レンタル | 大阪で、スケジュールに合わせて、お相手探せます',
   description:
-    '大阪全域で、時給をもらう人と時給を払う人が地図でつながる、時間単位のお相手マッチング。ユーザーは無料。',
+    '大阪全域で、報酬をもらう人と報酬を払う人が地図でつながる、時間単位のお相手マッチング。ユーザーは無料。',
   // OGP画像の絶対URLを作るための基準。公開後は NEXT_PUBLIC_SITE_URL に本番URLを設定
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   robots: { index: false, follow: false }, // TODO: 法務確認後に index: true へ
@@ -61,9 +61,9 @@ const AREAS = [
   { name: '泉州', x: 345, y: 508 },
 ]
 
-// ダミーのピン(実際の募集ではない)。水色=時給をもらう、オレンジ=時給を払う
+// ダミーのピン(実際の募集ではない)。水色=報酬をもらう、オレンジ=報酬を払う
 const PINS = [
-  { x: 190, y: 318, color: BLUE, label: 'ランチ 時給1,000円', pulse: true },
+  { x: 190, y: 318, color: BLUE, label: 'ランチ 報酬1,000円', pulse: true },
   { x: 130, y: 135, color: AMBER, label: '買い物の手伝い', pulse: false },
   { x: 400, y: 235, color: BLUE, label: '散歩 1時間', pulse: false },
   { x: 400, y: 375, color: AMBER, label: 'ランチの相手', pulse: false },
@@ -138,7 +138,7 @@ function MapIllustration() {
         className={styles.mapSvg}
         viewBox="0 0 520 520"
         role="img"
-        aria-label="大阪全域の地図のイメージ。淀川が北東から南西の大阪湾へ流れ、大阪城・通天閣・梅田スカイビルのほか、時給をもらう募集(水色)と時給を払う募集(オレンジ)のピンが並んでいます"
+        aria-label="大阪全域の地図のイメージ。淀川が北東から南西の大阪湾へ流れ、大阪城・通天閣・梅田スカイビルのほか、報酬をもらう募集(水色)と報酬を払う募集(オレンジ)のピンが並んでいます"
       >
         <rect width="520" height="520" fill="#eaf1f6" />
 
@@ -239,7 +239,7 @@ export default function LandingPage() {
               お相手探せます。
             </h1>
             <p className={styles.heroSub}>
-              大阪全域で、時給をもらう人と、時給を払う人が地図でつながります。ユーザーは無料で使えます。
+              大阪全域で、報酬をもらう人と、報酬を払う人が地図でつながります。ユーザーは無料で使えます。
             </p>
             <div className={styles.heroCtas}>
               <a className={`${styles.btn} ${styles.btnPrimary}`} href={CTA_USER}>
@@ -287,15 +287,15 @@ export default function LandingPage() {
         <section className={`${styles.section} ${styles.sectionAlt}`} aria-labelledby="scenes">
           <div className={styles.wrap}>
             <h2 id="scenes" className={`${styles.heading} ${styles.sectionTitle}`}>
-              時給をもらう人と、払う人
+              報酬をもらう人と、払う人
             </h2>
             <p className={styles.lead}>
               募集は2種類あります。空いた時間を使いたい人と、誰かの時間がほしい人が、同じ地図に並びます。
             </p>
             <div className={styles.types}>
               <div className={`${styles.type} ${styles.typeReceive}`}>
-                <h3 className={`${styles.heading} ${styles.typeTitle}`}>時給をもらう</h3>
-                <p>自分の空き時間と時給を決めて、募集を出します。</p>
+                <h3 className={`${styles.heading} ${styles.typeTitle}`}>報酬をもらう</h3>
+                <p>自分の空き時間と報酬を決めて、募集を出します。</p>
                 <ul>
                   <li>ランチやカフェの相手</li>
                   <li>散歩や買い物の同行</li>
@@ -303,7 +303,7 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className={`${styles.type} ${styles.typePay}`}>
-                <h3 className={`${styles.heading} ${styles.typeTitle}`}>時給を払う</h3>
+                <h3 className={`${styles.heading} ${styles.typeTitle}`}>報酬を払う</h3>
                 <p>手伝いや相手がほしい内容を書いて、募集を出します。</p>
                 <ul>
                   <li>ランチや食事の相手</li>
@@ -339,9 +339,9 @@ export default function LandingPage() {
               <li>
                 {/* 【要法務確認】「バイト」表現(意図的に使用)。職業紹介・雇用との関係、報酬の位置づけ */}
                 <h3 className={`${styles.heading} ${styles.peopleTitle}`}>
-                  空いた1時間で、バイト感覚で稼ぎたい
+                  スキルや空き時間を活かして稼ぎたい
                 </h3>
-                <p>学生、主婦・主夫、フリーランスの方が、自分のペースで時給をもらえます。</p>
+                <p>学生、主婦・主夫、フリーランスの方が、自分のペースで報酬をもらえます。</p>
               </li>
               <li>
                 {/* 【要法務確認】「便利屋」表現(意図的に使用)。事故時の責任、買い物代行の金銭預かり */}
@@ -434,7 +434,7 @@ export default function LandingPage() {
               <summary>お金はどうやって払いますか?</summary>
               {/* 【要法務確認】当事者間の現金払いの整理(契約関係、トラブル時の証跡) */}
               <p>
-                時給は、会った当日に、当事者どうしで直接やり取りします。お相手レンタルは時給を預かりません。
+                報酬は、会った当日に、当事者どうしで直接やり取りします。お相手レンタルは報酬を預かりません。
               </p>
             </details>
             <details>

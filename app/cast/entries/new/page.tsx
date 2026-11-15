@@ -65,7 +65,7 @@ export default function NewEntryPage() {
                   : 'bg-white text-gray-600 border-gray-300'
          }`}
       >
-              時給をもらう
+              報酬をもらう
             </button>
             <button
               type="button"
@@ -76,7 +76,7 @@ export default function NewEntryPage() {
                   : 'bg-white text-gray-600 border-gray-300'
         }`}
       >
-             時給を払う
+             報酬を払う
             </button>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function NewEntryPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">時給(円)</label>
+          <label className="block text-sm font-medium mb-1">1時間あたりの報酬(円)</label>
           <input
             type="number"
             required

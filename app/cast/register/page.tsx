@@ -214,7 +214,7 @@ export default function CastRegisterPage() {
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            時給の目安（円）(受取・支払い共通)
+            1時間あたりの報酬の目安（円）(受取・支払い共通)
           </label>
           <div className="flex items-center gap-2">
             <input

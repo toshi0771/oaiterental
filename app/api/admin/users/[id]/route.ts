@@ -53,6 +53,34 @@ export async function PATCH(
         )
       }
     }
+
+    // Webhook(customer.subscription.deleted)と同じ後処理をここでも行う。
+    // Webhookが届かない環境でも整合が取れるようにするため(何度実行しても結果は同じ)。
+    await supabaseAdmin
+      .from('subscriptions')
+      .update({ plan_type: 'free', status: 'canceled' })
+      .eq('user_id', targetUserId)
+      .not('stripe_subscription_id', 'is', null)
+
+    await supabaseAdmin
+      .from('users')
+      .update({ role: 'user' })
+      .eq('id', targetUserId)
+      .eq('role', 'cast')
+
+    const { data: castProfile } = await supabaseAdmin
+      .from('cast_profiles')
+      .select('id')
+      .eq('user_id', targetUserId)
+      .maybeSingle()
+
+    if (castProfile) {
+      await supabaseAdmin
+        .from('entries')
+        .update({ status: 'cancelled' })
+        .eq('cast_id', castProfile.id)
+        .eq('status', 'open')
+    }
   }
 
   return NextResponse.json({ success: true })

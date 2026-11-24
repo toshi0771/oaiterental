@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin'
 import { supabaseAdmin } from '@/lib/supabase'
+import { stripe } from '@/lib/stripe'
 
 export async function PATCH(
   request: Request,
@@ -24,6 +25,34 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // 資格取消(ブラックリスト登録)時は Stripe の課金を即時停止する。
+  // 返金・日割り請求はしない(規約:取消月の月額料金は返金しない)。
+  // プラン・役割・募集中投稿の後処理は Webhook(customer.subscription.deleted)が行う。
+  if (is_blacklisted) {
+    const { data: sub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('stripe_subscription_id')
+      .eq('user_id', targetUserId)
+      .maybeSingle()
+
+    if (sub?.stripe_subscription_id) {
+      try {
+        const stripeSub = await stripe.subscriptions.retrieve(sub.stripe_subscription_id)
+        if (stripeSub.status !== 'canceled') {
+          await stripe.subscriptions.cancel(sub.stripe_subscription_id, {
+            invoice_now: false,
+            prorate: false,
+          })
+        }
+      } catch (e: any) {
+        return NextResponse.json(
+          { error: '資格取消は完了しましたが、Stripeの解約に失敗しました。Stripeダッシュボードで手動解約してください: ' + (e?.message ?? '') },
+          { status: 500 }
+        )
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
